@@ -190,41 +190,77 @@ describe('Real JSON Sample Parsing', () => {
     expect(totalSegments).toBeLessThan(response.length);
   });
 
-  it('should collect file edits for single replaceString tool calls', () => {
-    // This test uses chat.json which has both single replaceString and multi-replace tool calls
-    const samplePath = join(process.cwd(), 'samples', 'chat.json');
-    const jsonContent = readFileSync(samplePath, 'utf-8');
-    
-    const result = parseLog(jsonContent);
-    
+  it('should collect file edits for single replaceString tool calls (inline fixture)', () => {
+    // Inline JSON fixture simulating a single replaceString tool invocation followed by a textEditGroup
+    const jsonFixture = {
+      requesterUsername: 'digitarald',
+      responderUsername: 'GitHub Copilot',
+      requests: [
+        {
+          requestId: 'req-inline-1',
+          message: { text: 'Perform a single replace.' },
+          response: [
+            {
+              kind: 'toolInvocationSerialized',
+              invocationMessage: 'Replace String in File',
+              pastTenseMessage: 'Replace String in File (app.ts) lines 1-1',
+              toolId: 'copilot_replaceString',
+              toolCallId: 'tc-inline-1',
+              isComplete: true,
+            },
+            {
+              kind: 'textEditGroup',
+              uri: 'file:///workspace/app.ts',
+              edits: [
+                [
+                  {
+                    text: 'console.log("updated");',
+                    range: {
+                      startLineNumber: 1,
+                      startColumn: 1,
+                      endLineNumber: 1,
+                      endColumn: 30,
+                    },
+                  },
+                ],
+              ],
+            },
+            {
+              value: 'Replacement done.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = parseLog(JSON.stringify(jsonFixture));
+
     // Find all tool calls
     const toolCalls = result.messages
-      .flatMap(m => m.contentSegments)
-      .filter(seg => seg.type === 'tool_call')
-      .map(seg => seg.type === 'tool_call' ? seg.toolCall : null)
-      .filter(tc => tc !== null);
-    
+      .flatMap((m) => m.contentSegments)
+      .filter((seg) => seg.type === 'tool_call')
+      .map((seg) => (seg.type === 'tool_call' ? seg.toolCall : null))
+      .filter((tc) => tc !== null);
+
     expect(toolCalls.length).toBeGreaterThan(0);
-    
+
     // Find single replace string tool calls (not multi-replace)
-    const singleReplaceToolCalls = toolCalls.filter(tc => 
-      tc?.action && 
-      tc.action.includes('Replace String in File') && 
-      !tc.action.includes('Multi')
+    const singleReplaceToolCalls = toolCalls.filter(
+      (tc) =>
+        tc?.action && tc.action.includes('Replace String in File') && !tc.action.includes('Multi')
     );
-    
-    // Should have some single replace string calls
+
     expect(singleReplaceToolCalls.length).toBeGreaterThan(0);
-    
-    // At least some should have file edits
-    const withFileEdits = singleReplaceToolCalls.filter(tc => tc?.fileEdits && tc.fileEdits.length > 0);
+
+    const withFileEdits = singleReplaceToolCalls.filter(
+      (tc) => tc?.fileEdits && tc.fileEdits.length > 0
+    );
     expect(withFileEdits.length).toBeGreaterThan(0);
-    
-    // Verify structure
+
     const firstWithEdits = withFileEdits[0];
     expect(firstWithEdits?.fileEdits).toBeDefined();
     expect(Array.isArray(firstWithEdits?.fileEdits)).toBe(true);
-    
+
     if (firstWithEdits?.fileEdits && firstWithEdits.fileEdits.length > 0) {
       const firstEdit = firstWithEdits.fileEdits[0];
       expect(firstEdit.filePath).toBeDefined();
