@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { gistFetcher } from '@/lib/gist-fetcher';
 import { parseLog } from '@/lib/parser';
@@ -249,6 +250,40 @@ export default function HomePage() {
             {loading ? 'Loading...' : 'View Chat Log from Gist'}
           </button>
         </form>
+
+        {/* Example Gists */}
+        <div className="mt-12 rounded-lg p-6" style={{ backgroundColor: '#252526', border: '1px solid #3e3e42' }} aria-labelledby="example-gists-heading">
+          <h2 id="example-gists-heading" className="font-semibold mb-3 flex items-center gap-2" style={{ color: '#cccccc' }}>
+            <span>🔗</span>
+            Example Gists
+          </h2>
+          <p className="text-sm mb-4" style={{ color: '#969696' }}>
+            Try one of these sample Copilot chat logs to see the viewer in action:
+          </p>
+          <ul className="space-y-2 text-sm" style={{ color: '#969696' }}>
+            <li>
+              <Link
+                href="/view?gistId=c4cfa2f93b5a47e815f3fcb6d8d442cb"
+                className="underline"
+                style={{ color: '#007acc' }}
+              >
+                Example 1 (c4cfa2…442cb)
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/view?gistId=3c4369b6b19b509d40460413c8b3a333"
+                className="underline"
+                style={{ color: '#007acc' }}
+              >
+                Example 2 (3c4369…a333)
+              </Link>
+            </li>
+          </ul>
+          <p className="text-xs mt-4" style={{ color: '#5a5a5a' }}>
+            These links fetch the raw Gist content on the client (subject to GitHub API rate limits).
+          </p>
+        </div>
 
         <div className="mt-12 rounded-lg p-6" style={{ backgroundColor: '#252526', border: '1px solid #3e3e42' }}>
           <h2 className="font-semibold mb-3 flex items-center gap-2" style={{ color: '#cccccc' }}>

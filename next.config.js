@@ -4,8 +4,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  basePath: process.env.NODE_ENV === 'production' ? '/copilot-log-viewer' : '',
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/copilot-log-viewer/' : '',
+  basePath: process.env.NODE_ENV === 'production' ? '/vscode-chat-logs' : '',
+  assetPrefix: process.env.NODE_ENV === 'production' ? '/vscode-chat-logs/' : '',
 };
 
 module.exports = nextConfig;
