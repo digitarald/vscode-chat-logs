@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="180" height="180">
+  <rect width="180" height="180" fill="#1e1e1e"/>
+  <circle cx="90" cy="90" r="70" fill="#007acc"/>
+  <path d="M 70 90 L 85 100 L 110 70" stroke="white" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="90" y="145" font-family="system-ui, -apple-system" font-size="14" font-weight="bold" text-anchor="middle" fill="white">Copilot Logs</text>
+</svg>

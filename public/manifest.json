@@ -1,0 +1,19 @@
+{
+  "name": "VS Code Chat Log Viewer",
+  "short_name": "Chat Logs",
+  "description": "View GitHub Copilot VS Code chat logs in a beautiful, VS Code-like interface",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#1e1e1e",
+  "background_color": "#1e1e1e",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+export type MessageRole = 'user' | 'assistant';
+
+export type ToolCallType = 
+  | 'read'
+  | 'search'
+  | 'navigate'
+  | 'click'
+  | 'type'
+  | 'screenshot'
+  | 'snapshot'
+  | 'run'
+  | 'todo'
+  | 'other';
+
+export interface FileEdit {
+  filePath: string;
+  text: string;
+  range?: {
+    startLine: number;
+    startColumn: number;
+    endLine: number;
+    endColumn: number;
+  };
+}
+
+export interface ToolCall {
+  type: ToolCallType;
+  action: string;
+  input?: string | Record<string, unknown>;
+  output?: string;
+  status?: 'pending' | 'completed' | 'failed';
+  ref?: string;
+  toolCallId?: string;
+  mcpServer?: string;
+  subAgentCalls?: ToolCall[];
+  screenshot?: string; // base64 encoded image
+  consoleOutput?: string[];
+  pageSnapshot?: string; // YAML DOM snapshot
+  fileEdits?: FileEdit[]; // For multi-replace operations
+}
+
+export interface CodeBlock {
+  language: string;
+  code: string;
+  diff?: boolean;
+}
+
+export interface FileReference {
+  path: string;
+  lines?: string;
+  url?: string;
+}
+
+export interface TaskStatus {
+  title: string;
+  status: 'pending' | 'started' | 'completed';
+  index?: string;
+}
+
+export type ContentSegmentType = 'text' | 'tool_call';
+
+export interface TextSegment {
+  type: 'text';
+  content: string;
+  order: number;
+}
+
+export interface ToolCallSegment {
+  type: 'tool_call';
+  toolCall: ToolCall;
+  order: number;
+}
+
+export type ContentSegment = TextSegment | ToolCallSegment;
+
+export interface ChatMessage {
+  id: string;
+  role: MessageRole;
+  contentSegments: ContentSegment[];
+  timestamp?: Date;
+  codeBlocks?: CodeBlock[];
+  fileReferences?: FileReference[];
+  tasks?: TaskStatus[];
+  variableData?: VariableData[];
+}
+
+export interface VariableData {
+  kind: string;
+  name: string;
+  description?: string;
+  value?: string | number | boolean | Record<string, unknown> | null;
+}
+
+export interface ParsedSession {
+  messages: ChatMessage[];
+  metadata?: {
+    totalMessages: number;
+    toolCallCount: number;
+    fileCount: number;
+  };
+}
