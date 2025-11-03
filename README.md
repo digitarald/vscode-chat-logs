@@ -2,6 +2,8 @@
 
 A beautiful web app that renders GitHub Copilot VS Code chat logs with a VS Code-like interface.
 
+**🌐 [Try it now →](https://digitarald.github.io/vscode-chat-logs/)**
+
 ## Why?
 
 Share your Copilot conversations with others in a readable, shareable format. Perfect for:
