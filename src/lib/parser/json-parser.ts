@@ -256,9 +256,13 @@ export class JsonLogParser {
   // Internal split segment type excludes tool_call (only text and code_block produced here)
   private splitTextIntoSegments(
     text: string
-  ): Array<{ type: 'text'; content: string } | { type: 'code_block'; language: string; code: string; diff?: boolean }> {
+  ): Array<
+    | { type: 'text'; content: string }
+    | { type: 'code_block'; language: string; code: string; diff?: boolean }
+  > {
     const segments: Array<
-      { type: 'text'; content: string } | { type: 'code_block'; language: string; code: string; diff?: boolean }
+      | { type: 'text'; content: string }
+      | { type: 'code_block'; language: string; code: string; diff?: boolean }
     > = [];
     const fenceRegex = /```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g;
     let lastIndex = 0;
