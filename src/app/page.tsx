@@ -154,9 +154,9 @@ export default function HomePage() {
   };
 
   const handlePaste = useCallback(async (e: ClipboardEvent) => {
-    // Don't interfere with paste in input fields
+    // Don't interfere with paste in input fields or contentEditable elements
     const target = e.target as HTMLElement;
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
       return;
     }
 
@@ -181,7 +181,7 @@ export default function HomePage() {
 
   // Add paste event listener
   useEffect(() => {
-    document.addEventListener('paste', handlePaste);
+    document.addEventListener('paste', handlePaste, { passive: false });
     
     return () => {
       document.removeEventListener('paste', handlePaste);
