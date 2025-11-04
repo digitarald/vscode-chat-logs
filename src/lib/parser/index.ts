@@ -408,10 +408,22 @@ export class CopilotLogParser {
     // Match "Searched for files matching ..." pattern
     const searchFilesMatch = line.match(/^Searched\s+(.+?)$/);
     if (searchFilesMatch && searchFilesMatch[1].includes('for files matching')) {
+      // If the line includes a trailing result phrase (no matches/results), extract it
+      // Example: Searched for files matching `**/Footer*`, no matches
+      // We trim the action to exclude the trailing ", no matches" part and set output accordingly.
+      const rawAction = searchFilesMatch[1];
+      const trailingResult = rawAction.match(/^(.*),\s*(no matches|no results)$/);
+      let action = rawAction;
+      let output: string | undefined;
+      if (trailingResult) {
+        action = trailingResult[1].trim();
+        output = '0 results';
+      }
       return {
         type: 'search',
-        action: searchFilesMatch[1],
+        action,
         status: 'completed',
+        ...(output ? { output } : {}),
       };
     }
 
@@ -423,6 +435,18 @@ export class CopilotLogParser {
         type: 'search',
         action: `regex ${regexSearchCount[1]}`,
         output: `${regexSearchCount[2]} results`,
+        status: 'completed',
+      };
+    }
+
+    // Bare regex search (no count/no results) used in multi-search combined lines:
+    // Example segment: "Searched for regex `search.*icon`"
+    const regexSearchBare = line.match(/^Searched\s+for\s+regex\s+`([^`]+)`$/);
+    if (regexSearchBare) {
+      return {
+        type: 'search',
+        // Keep the phrase "for regex" so tests asserting action contains it will pass
+        action: `for regex ${regexSearchBare[1]}`,
         status: 'completed',
       };
     }

@@ -39,7 +39,10 @@ export const EXAMPLE_GISTS: readonly ExampleGist[] = [
  */
 export function formatGistId(id: string): string {
   if (id.length <= 12) return id;
-  return `${id.slice(0, 6)}…${id.slice(-5)}`;
+  // Expected format (see tests): first 6 chars + ellipsis + last 4 chars
+  // Previous implementation incorrectly used last 5, causing IDs like 123456…1ffff
+  // Adjust to slice(-4) to match test expectation /^123456…ffff$/
+  return `${id.slice(0, 6)}…${id.slice(-4)}`;
 }
 
 /**
