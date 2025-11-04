@@ -7,7 +7,7 @@ export interface HistoryEntry {
 }
 
 const HISTORY_KEY = 'copilot-log-history';
-const MAX_HISTORY_ENTRIES = 10;
+const MAX_HISTORY_ENTRIES = 5;
 
 /**
  * Get all history entries from localStorage

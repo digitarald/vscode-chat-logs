@@ -104,18 +104,18 @@ describe('History utility', () => {
       expect(history[1].id).toBe('def456');
     });
 
-    it('should limit history to 10 entries', () => {
-      // Add 15 entries
-      for (let i = 0; i < 15; i++) {
+    it('should limit history to 5 entries', () => {
+      // Add 10 entries
+      for (let i = 0; i < 10; i++) {
         addToHistory({ id: `entry-${i}`, type: 'gist', gistId: `entry-${i}` });
       }
 
       const history = getHistory();
-      expect(history).toHaveLength(10);
+      expect(history).toHaveLength(5);
       // Most recent entry should be first
-      expect(history[0].id).toBe('entry-14');
+      expect(history[0].id).toBe('entry-9');
       // Oldest kept entry should be entry-5
-      expect(history[9].id).toBe('entry-5');
+      expect(history[4].id).toBe('entry-5');
     });
 
     it('should handle localStorage errors gracefully', () => {
