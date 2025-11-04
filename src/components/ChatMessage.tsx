@@ -14,7 +14,7 @@ function FileEditItem({ fileEdit, index }: { fileEdit: { filePath: string; text:
     <div key={index} className="rounded" style={{ backgroundColor: '#1e1e1e', border: '1px solid #3e3e42' }}>
       <div
         onClick={() => setIsFileExpanded(!isFileExpanded)}
-        className="w-full flex items-center gap-2 cursor-pointer transition-colors"
+        className="w-full flex items-center gap-2 cursor-pointer transition-colors select-text"
         style={{ padding: '8px 12px' }}
         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2d2d30'}
         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -29,12 +29,13 @@ function FileEditItem({ fileEdit, index }: { fileEdit: { filePath: string; text:
         aria-expanded={isFileExpanded}
         aria-label={`Toggle file ${fileName} details`}
       >
+        {/* Arrow icon remains non-selectable */}
         <span className="text-xs select-none" style={{ color: '#969696' }}>
           {isFileExpanded ? '▼' : '▶'}
         </span>
-        <span className="text-xs font-mono select-none" style={{ color: '#4fc3f7' }}>{fileName}</span>
-        <span className="text-xs select-none" style={{ color: '#606060' }}>•</span>
-        <span className="text-xs select-none" style={{ color: '#969696' }}>
+        <span className="text-xs font-mono" style={{ color: '#4fc3f7' }}>{fileName}</span>
+        <span className="text-xs" style={{ color: '#606060' }}>•</span>
+        <span className="text-xs" style={{ color: '#969696' }}>
           {fileEdit.range 
             ? `Lines ${fileEdit.range.startLine}-${fileEdit.range.endLine}`
             : 'Full file'}
@@ -104,7 +105,7 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
     <div className="mb-0.5 rounded" style={{ backgroundColor: '#252526', border: '1px solid #3e3e42' }}>
       <div
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center gap-2 cursor-pointer transition-colors"
+        className="w-full flex items-center gap-2 cursor-pointer transition-colors select-text"
         style={{ padding: '6px 12px' }}
         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2d2d30'}
         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -120,15 +121,16 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
         aria-label={`Toggle details for ${toolCall.action}`}
         aria-controls={`tool-details-${toolCall.toolCallId || toolCall.action}`}
       >
+        {/* Status and main icon remain non-selectable */}
         <span className="text-xs select-none" style={{ color: '#89d185' }}>✓</span>
         <span className="text-sm select-none">
           {isFileEditToolCall ? '✏️' : getIcon()}
         </span>
         <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
-          <span className="text-xs select-none" style={{ color: '#cccccc' }}>{displayAction}</span>
+          <span className="text-xs" style={{ color: '#cccccc' }}>{displayAction}</span>
           {filename && (
             <span 
-              className="text-xs px-2 py-0.5 rounded select-none"
+              className="text-xs px-2 py-0.5 rounded"
               style={{ 
                 backgroundColor: 'rgba(96, 96, 96, 0.2)', 
                 color: '#969696',
@@ -141,7 +143,7 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
           {editedFiles.map((file, idx) => (
             <span 
               key={idx}
-              className="text-xs px-2 py-0.5 rounded font-mono select-none"
+              className="text-xs px-2 py-0.5 rounded font-mono"
               style={{ 
                 backgroundColor: 'rgba(79, 195, 247, 0.15)', 
                 color: '#4fc3f7',
@@ -152,7 +154,7 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
             </span>
           ))}
           {toolCall.mcpServer && (
-            <span className="text-xs select-none" style={{ color: '#4fc3f7' }}>
+            <span className="text-xs" style={{ color: '#4fc3f7' }}>
               {toolCall.mcpServer}
             </span>
           )}
@@ -168,7 +170,7 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
         <div className="text-xs space-y-2 select-text" style={{ padding: '8px 12px', borderTop: '1px solid #3e3e42' }}>
           {toolCall.input && (
             <div>
-              <span className="font-semibold block mb-1 select-none" style={{ color: '#969696' }}>Input:</span>
+              <span className="font-semibold block mb-1" style={{ color: '#969696' }}>Input:</span>
               <pre className="rounded overflow-x-auto select-text" style={{ padding: '12px', color: '#cccccc', backgroundColor: '#1e1e1e', border: '1px solid #3e3e42' }}>
                 {typeof toolCall.input === 'string' 
                   ? toolCall.input 
@@ -179,16 +181,16 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
           
           {toolCall.output && !toolCall.screenshot && !toolCall.consoleOutput && (
             <div>
-              <span className="font-semibold block mb-1 select-none" style={{ color: '#969696' }}>Output:</span>
+              <span className="font-semibold block mb-1" style={{ color: '#969696' }}>Output:</span>
               <pre className="rounded overflow-x-auto whitespace-pre-wrap break-words select-text" style={{ padding: '12px', color: '#cccccc', backgroundColor: '#1e1e1e', border: '1px solid #3e3e42' }}>{toolCall.output}</pre>
             </div>
           )}
           
           {toolCall.screenshot && (
             <div>
-              <span className="font-semibold block mb-2 select-none" style={{ color: '#969696' }}>Screenshot:</span>
+              <span className="font-semibold block mb-2" style={{ color: '#969696' }}>Screenshot:</span>
               <details className="group">
-                <summary className="cursor-pointer mb-2 select-none" style={{ color: '#4fc3f7' }}
+                <summary className="cursor-pointer mb-2" style={{ color: '#4fc3f7' }}
                   onMouseEnter={(e) => e.currentTarget.style.color = '#1a8dd8'}
                   onMouseLeave={(e) => e.currentTarget.style.color = '#4fc3f7'}>
                   Click to expand screenshot
@@ -205,7 +207,7 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
           
           {toolCall.consoleOutput && toolCall.consoleOutput.length > 0 && (
             <div>
-              <span className="font-semibold block mb-1 select-none" style={{ color: '#969696' }}>Console Output ({toolCall.consoleOutput.length}):</span>
+              <span className="font-semibold block mb-1" style={{ color: '#969696' }}>Console Output ({toolCall.consoleOutput.length}):</span>
               <div className="p-3 rounded space-y-1 max-h-48 overflow-y-auto select-text" style={{ backgroundColor: '#1e1e1e', border: '1px solid #3e3e42' }}>
                 {toolCall.consoleOutput.map((log, idx) => (
                   <div 
@@ -226,9 +228,9 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
           
           {toolCall.pageSnapshot && (
             <div>
-              <span className="font-semibold block mb-1 select-none" style={{ color: '#969696' }}>Page State:</span>
+              <span className="font-semibold block mb-1" style={{ color: '#969696' }}>Page State:</span>
               <details className="group">
-                <summary className="cursor-pointer select-none" style={{ color: '#4fc3f7' }}
+                <summary className="cursor-pointer" style={{ color: '#4fc3f7' }}
                   onMouseEnter={(e) => e.currentTarget.style.color = '#1a8dd8'}
                   onMouseLeave={(e) => e.currentTarget.style.color = '#4fc3f7'}>
                   View DOM snapshot
@@ -241,7 +243,7 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
           )}
           {toolCall.fileEdits && toolCall.fileEdits.length > 0 && (
             <div>
-              <span className="font-semibold block mb-2 select-none" style={{ color: '#969696' }}>Files Modified ({toolCall.fileEdits.length}):</span>
+              <span className="font-semibold block mb-2" style={{ color: '#969696' }}>Files Modified ({toolCall.fileEdits.length}):</span>
               <div className="space-y-2">
                 {toolCall.fileEdits.map((fileEdit, idx) => (
                   <FileEditItem key={idx} fileEdit={fileEdit} index={idx} />
@@ -252,7 +254,7 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
           
           {toolCall.subAgentCalls && toolCall.subAgentCalls.length > 0 && (
             <div>
-              <span className="font-semibold block mb-2 select-none" style={{ color: '#969696' }}>Subagent Actions ({toolCall.subAgentCalls.length}):</span>
+              <span className="font-semibold block mb-2" style={{ color: '#969696' }}>Subagent Actions ({toolCall.subAgentCalls.length}):</span>
               <div className="space-y-2">
                 {toolCall.subAgentCalls.map((subCall, idx) => (
                   <ToolCallItem key={idx} toolCall={subCall} depth={depth + 1} />
