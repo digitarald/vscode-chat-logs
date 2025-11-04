@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { gistFetcher } from '@/lib/gist-fetcher';
@@ -39,7 +39,7 @@ export default function HomePage() {
     }
   };
 
-  const handleFileLoad = async (content: string) => {
+  const handleFileLoad = useCallback(async (content: string) => {
     try {
       // Validate that the content can be parsed
       parseLog(content);
@@ -72,7 +72,7 @@ export default function HomePage() {
     } catch (err) {
       setError(`Failed to parse file: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
-  };
+  }, [router]);
 
   const storeInIndexedDB = (content: string): Promise<void> => {
     return new Promise((resolve, reject) => {
@@ -153,7 +153,7 @@ export default function HomePage() {
     reader.readAsText(file);
   };
 
-  const handlePaste = async (e: ClipboardEvent) => {
+  const handlePaste = useCallback(async (e: ClipboardEvent) => {
     // Don't interfere with paste in input fields
     const target = e.target as HTMLElement;
     if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
@@ -172,21 +172,21 @@ export default function HomePage() {
     try {
       // Try to parse the pasted content
       await handleFileLoad(text);
+      // Note: isPasting will be reset by navigation, so no need to explicitly set to false here
     } catch (err) {
       setError(`Failed to parse pasted content: ${err instanceof Error ? err.message : 'Unknown error'}`);
       setIsPasting(false);
     }
-  };
+  }, [handleFileLoad]);
 
   // Add paste event listener
   useEffect(() => {
-    const pasteHandler = (e: ClipboardEvent) => handlePaste(e);
-    document.addEventListener('paste', pasteHandler);
+    document.addEventListener('paste', handlePaste);
     
     return () => {
-      document.removeEventListener('paste', pasteHandler);
+      document.removeEventListener('paste', handlePaste);
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [handlePaste]);
 
   return (
     <div
