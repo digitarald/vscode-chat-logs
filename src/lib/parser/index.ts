@@ -47,7 +47,42 @@ export class CopilotLogParser {
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      
+
+      // Handle combined multi-search lines containing pipe-separated searches
+      // Example: "Searched for regex `search.*icon`|Searched (**/src/components/**), no results"
+      if (line.startsWith('Searched ') && line.includes('|Searched ')) {
+        if (currentMessage) {
+          // Flush accumulated content once before adding multiple tool calls
+          if (currentContent.length > 0) {
+            const textContent = currentContent.join('\n').trim();
+            if (textContent) {
+              contentSegments.push({
+                type: 'text',
+                content: textContent,
+                order: this.segmentOrderCounter++,
+              });
+            }
+            currentContent = [];
+          }
+
+          const segments = line
+            .split('|Searched')
+            .map((part, idx) => (idx === 0 ? part : 'Searched' + part));
+          for (const seg of segments) {
+            const searchToolCall = this.parseToolCall(seg);
+            if (searchToolCall) {
+              contentSegments.push({
+                type: 'tool_call',
+                toolCall: searchToolCall,
+                order: this.segmentOrderCounter++,
+              });
+              lastToolCall = searchToolCall; // track last if next line provides input
+            }
+          }
+          continue;
+        }
+      }
+
       // Detect code block boundaries
       if (line.trim().startsWith('```')) {
         if (!inCodeBlock) {
@@ -93,7 +128,10 @@ export class CopilotLogParser {
         } catch {
           // Not valid JSON yet, continue collecting lines
           // But if we hit an empty line or new section, stop
-          if (line.trim() === '' || line.match(/^(digitarald:|GitHub Copilot:|Ran |Searched |Read |Got output)/)) {
+          if (
+            line.trim() === '' ||
+            line.match(/^(digitarald:|GitHub Copilot:|Ran |Searched |Read |Got output)/)
+          ) {
             // Malformed JSON, just store what we have
             if (lastToolCall) {
               lastToolCall.input = toolInputLines.slice(0, -1).join('\n'); // Don't include the new section line
@@ -146,7 +184,7 @@ export class CopilotLogParser {
       if (fileRef && currentMessage) {
         currentMessage.fileReferences = currentMessage.fileReferences || [];
         currentMessage.fileReferences.push(fileRef);
-        
+
         // Also create a tool call for "Read" actions
         if (line.startsWith('Read')) {
           // Flush any accumulated content before tool call
@@ -161,14 +199,14 @@ export class CopilotLogParser {
             }
             currentContent = [];
           }
-          
+
           const toolCall: ToolCall = {
             type: 'read',
             action: `Read ${fileRef.path.split('/').pop()}`,
             input: fileRef.path,
             status: 'completed',
           };
-          
+
           contentSegments.push({
             type: 'tool_call',
             toolCall,
@@ -227,14 +265,14 @@ export class CopilotLogParser {
           }
           currentContent = [];
         }
-        
+
         // Add tool call segment
         contentSegments.push({
           type: 'tool_call',
           toolCall,
           order: this.segmentOrderCounter++,
         });
-        
+
         lastToolCall = toolCall; // Track for potential "Completed with input:"
         continue;
       }
@@ -275,8 +313,9 @@ export class CopilotLogParser {
     // "Ran Navigate to a URL"
     // "Searched for files matching ..."
     // "Starting: *Task Name* (1/5)" - treat as todo tool call
+    // "Using \"Multi-Replace String in Files\"" - multi file replace tool call
     // Note: "Read" patterns are handled by parseFileReference
-    
+
     // Match "Starting: *Task Name* (1/5)" as todo tool call
     const startingMatch = line.match(/^Starting:\s+\*?(.+?)\*?\s+\((\d+\/\d+)\)/);
     if (startingMatch) {
@@ -286,7 +325,64 @@ export class CopilotLogParser {
         status: 'completed',
       };
     }
-    
+
+    // Multi-Replace invocation
+    const multiReplaceMatch = line.match(/^Using\s+"Multi-Replace String in Files"/);
+    if (multiReplaceMatch) {
+      return {
+        type: 'replace',
+        action: 'Multi-Replace String in Files',
+        status: 'completed',
+      };
+    }
+    // Sometimes serialized logs may only contain the bare phrase
+    if (line.trim() === 'Multi-Replace String in Files') {
+      return {
+        type: 'replace',
+        action: 'Multi-Replace String in Files',
+        status: 'completed',
+      };
+    }
+
+    // Apply Patch invocation
+    const applyPatchMatch = line.match(/^Using\s+"Apply Patch"/);
+    if (applyPatchMatch) {
+      return {
+        type: 'patch',
+        action: 'Apply Patch',
+        status: 'completed',
+      };
+    }
+    if (line.trim() === 'Apply Patch') {
+      return {
+        type: 'patch',
+        action: 'Apply Patch',
+        status: 'completed',
+      };
+    }
+
+    // Test discovery and execution summary
+    const discoveringTests = line.match(/^Discovering tests\.\.\.$/);
+    if (discoveringTests) {
+      return {
+        type: 'test',
+        action: 'Discovering tests',
+        status: 'pending',
+      };
+    }
+    const testSummary = line.match(/^(\d+)\/(\d+)\s+tests\s+passed\s+\((\d+)%\)/);
+    if (testSummary) {
+      const passed = testSummary[1];
+      const total = testSummary[2];
+      const pct = testSummary[3];
+      return {
+        type: 'test',
+        action: 'Tests passed',
+        output: `${passed}/${total} (${pct}%)`,
+        status: 'completed',
+      };
+    }
+
     const ranMatch = line.match(/^Ran\s+(.+?)(?:\s*-\s*(.+))?$/);
     if (ranMatch) {
       const action = ranMatch[1].trim();
@@ -315,6 +411,66 @@ export class CopilotLogParser {
       return {
         type: 'search',
         action: searchFilesMatch[1],
+        status: 'completed',
+      };
+    }
+
+    // Enhanced search patterns
+    // Regex search with count: Searched for regex `pattern`, 6 results
+    const regexSearchCount = line.match(/^Searched\s+for\s+regex\s+`([^`]+)`,\s*(\d+)\s*results?/);
+    if (regexSearchCount) {
+      return {
+        type: 'search',
+        action: `regex ${regexSearchCount[1]}`,
+        output: `${regexSearchCount[2]} results`,
+        status: 'completed',
+      };
+    }
+
+    // Regex/text search with no results (unquoted pattern, may include path filter in parentheses)
+    // Examples:
+    // Searched for regex search|Search (**/tests/unit/**), no results
+    // Searched for text no results (**/samples/**), no matches
+    const regexOrTextNoResults = line.match(
+      /^Searched\s+for\s+(regex|text)\s+(.+?),\s*(no results|no matches)$/
+    );
+    if (regexOrTextNoResults) {
+      const kind = regexOrTextNoResults[1];
+      const pattern = regexOrTextNoResults[2];
+      return {
+        type: 'search',
+        action: `${kind} ${pattern}`,
+        output: '0 results',
+        status: 'completed',
+      };
+    }
+
+    // Regex/file/glob search with no results/no matches
+    const searchNoResults = line.match(
+      /^Searched\s+(?:for\s+(?:regex|text)\s+)?`?([^`,]+?)`?(?:\s*|\s+for\s+files\s+matching\s+`?([^`]+)`?)?,\s*(no results|no matches)$/
+    );
+    if (searchNoResults) {
+      // Determine pattern from capture groups; first non-empty
+      const pattern = searchNoResults[2] ? searchNoResults[2] : searchNoResults[1];
+      return {
+        type: 'search',
+        action: pattern,
+        output: '0 results',
+        status: 'completed',
+      };
+    }
+
+    // Parentheses form: Searched (**/src/components/**), no results|3 results
+    const parenSearch = line.match(
+      /^Searched\s+\(([^)]+)\),\s*(no results|no matches|(\d+)\s*results?)$/
+    );
+    if (parenSearch) {
+      const outcome = parenSearch[2];
+      const count = parenSearch[3];
+      return {
+        type: 'search',
+        action: parenSearch[1],
+        output: outcome.startsWith('no') ? '0 results' : `${count} results`,
         status: 'completed',
       };
     }

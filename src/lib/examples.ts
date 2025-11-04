@@ -9,20 +9,28 @@ export interface ExampleGist {
 
 export const EXAMPLE_GISTS: readonly ExampleGist[] = [
   {
-    id: 'c4cfa2f93b5a47e815f3fcb6d8d442cb',
-    label: 'Quick UI Edit',
-  },
-  {
     id: '3c4369b6b19b509d40460413c8b3a333',
-    label: 'UI Review Agent',
+    label: 'UI Review Agent (Log)',
   },
   {
     id: 'bf919251c0c46492ec9b7706cae6b61d',
-    label: 'Debug & Fix Prod',
+    label: 'Fix Prod (Log)',
+  },
+  {
+    id: '3acef16f14d94244d1541e62ed2a14ba',
+    label: 'Fix Prod (Export)',
   },
   {
     id: '7abc0e372154857152778765a599fea7',
-    label: 'Iterate on Parser',
+    label: 'Parser Work (Log)',
+  },
+  {
+    id: 'cd0f7f7960921f67255d650b4e70e6bb',
+    label: 'Plan (Log)',
+  },
+  {
+    id: 'f46e2bd45968b1b7ca66be00620bea5c',
+    label: 'Plan (Export)',
   },
 ] as const;
 

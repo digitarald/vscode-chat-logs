@@ -317,6 +317,54 @@ describe('parseLog', () => {
     expect(result.messages[0].contentSegments[1].type).toBe('tool_call');
     expect(result.messages[0].contentSegments[2].type).toBe('text');
   });
+
+  it('should parse apply patch tool call', () => {
+    const log = 'GitHub Copilot: Patch\nUsing "Apply Patch"';
+    const result = parseLog(log);
+    const seg = result.messages[0].contentSegments.find(s => s.type === 'tool_call');
+    if (seg?.type === 'tool_call') {
+      expect(seg.toolCall.type).toBe('patch');
+      expect(seg.toolCall.action).toBe('Apply Patch');
+    }
+  });
+
+  it('should parse discovering tests line', () => {
+    const log = 'GitHub Copilot: Phase\nDiscovering tests...';
+    const result = parseLog(log);
+    const seg = result.messages[0].contentSegments.find(s => s.type === 'tool_call');
+    if (seg?.type === 'tool_call') {
+      expect(seg.toolCall.type).toBe('test');
+      expect(seg.toolCall.action).toBe('Discovering tests');
+      expect(seg.toolCall.status).toBe('pending');
+    }
+  });
+
+  it('should parse test summary line', () => {
+    const log = 'GitHub Copilot: Results\n45/45 tests passed (100%)';
+    const result = parseLog(log);
+    const seg = result.messages[0].contentSegments.find(s => s.type === 'tool_call');
+    if (seg?.type === 'tool_call') {
+      expect(seg.toolCall.type).toBe('test');
+      expect(seg.toolCall.output).toBe('45/45 (100%)');
+    }
+  });
+  
+  it('should parse multi-replace tool call', () => {
+    const log = 'GitHub Copilot: Start\nUsing "Multi-Replace String in Files"';
+    const result = parseLog(log);
+    const seg = result.messages[0].contentSegments.find(s => s.type === 'tool_call');
+    if (seg?.type === 'tool_call') {
+      expect(seg.toolCall.type).toBe('replace');
+    }
+  });
+
+  it('should parse multi-search split into multiple tool calls', () => {
+    const line = 'Searched for regex `search.*icon`|Searched (**/src/components/**), no results';
+    const log = `GitHub Copilot: Multi search test\n${line}`;
+    const result = parseLog(log);
+    const toolCalls = result.messages[0].contentSegments.filter(s => s.type === 'tool_call');
+    expect(toolCalls.length).toBe(2);
+  });
 });
 ```
 
@@ -344,6 +392,26 @@ describe('edge cases', () => {
     const result = parseLog(log);
     const toolSegments = result.messages[0].contentSegments.filter(s => s.type === 'tool_call');
     expect(toolSegments).toHaveLength(2);
+  });
+  
+  it('should handle search with no matches', () => {
+    const log = 'GitHub Copilot: Phase\nSearched for files matching `**/Footer*`, no matches';
+    const result = parseLog(log);
+    const toolSegments = result.messages[0].contentSegments.filter(s => s.type === 'tool_call');
+    expect(toolSegments).toHaveLength(1);
+    if (toolSegments[0].type === 'tool_call') {
+      expect(toolSegments[0].toolCall.output).toBe('0 results');
+    }
+  });
+
+  it('should handle parentheses search pattern', () => {
+    const log = 'GitHub Copilot: Phase\nSearched (**/src/components/**), no results';
+    const result = parseLog(log);
+    const toolSegments = result.messages[0].contentSegments.filter(s => s.type === 'tool_call');
+    expect(toolSegments).toHaveLength(1);
+    if (toolSegments[0].type === 'tool_call') {
+      expect(toolSegments[0].toolCall.output).toBe('0 results');
+    }
   });
 });
 ```

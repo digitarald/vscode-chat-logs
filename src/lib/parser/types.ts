@@ -1,6 +1,6 @@
 export type MessageRole = 'user' | 'assistant';
 
-export type ToolCallType = 
+export type ToolCallType =
   | 'read'
   | 'search'
   | 'navigate'
@@ -10,6 +10,12 @@ export type ToolCallType =
   | 'snapshot'
   | 'run'
   | 'todo'
+  // Multiple file/string replacement operations
+  | 'replace'
+  // Apply Patch operations
+  | 'patch'
+  // Test discovery / execution summary
+  | 'test'
   | 'other';
 
 export interface FileEdit {
