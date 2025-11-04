@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { gistFetcher } from '@/lib/gist-fetcher';
 import { parseLog } from '@/lib/parser';
+import { addToHistory } from '@/lib/history';
+import HistoryList from '@/components/HistoryList';
 
 export default function HomePage() {
   const router = useRouter();
@@ -39,6 +41,16 @@ export default function HomePage() {
     try {
       // Validate that the content can be parsed
       parseLog(content);
+      
+      // Generate a unique ID for file uploads
+      const fileId = `file-${Date.now()}`;
+      
+      // Add to history
+      addToHistory({
+        id: fileId,
+        type: 'file',
+        title: 'Uploaded file',
+      });
       
       // For large files, store in IndexedDB instead of sessionStorage
       try {
@@ -153,6 +165,9 @@ export default function HomePage() {
             Paste a GitHub Gist URL or drop a JSON/text file to view your Copilot chat log
           </p>
         </div>
+
+        {/* History List */}
+        <HistoryList />
 
         {/* Drag and Drop Zone */}
         <div

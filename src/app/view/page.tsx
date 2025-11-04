@@ -7,6 +7,7 @@ import { gistFetcher } from '@/lib/gist-fetcher';
 import { parseLog } from '@/lib/parser';
 import type { ParsedSession } from '@/lib/parser/types';
 import ChatMessageComponent from '@/components/ChatMessage';
+import { addToHistory } from '@/lib/history';
 
 function ViewerContent() {
   const searchParams = useSearchParams();
@@ -80,6 +81,14 @@ function ViewerContent() {
 
         const parsed = parseLog(logFile.content);
         setSession(parsed);
+        
+        // Add to history after successful load
+        addToHistory({
+          id: gistId,
+          type: 'gist',
+          gistId: gistId,
+          title: gist.description || `Gist ${gistId.substring(0, 8)}...`,
+        });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load content');
       } finally {
