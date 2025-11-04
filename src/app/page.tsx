@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { gistFetcher } from '@/lib/gist-fetcher';
@@ -15,6 +15,7 @@ export default function HomePage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isPasting, setIsPasting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,6 +153,41 @@ export default function HomePage() {
     reader.readAsText(file);
   };
 
+  const handlePaste = async (e: ClipboardEvent) => {
+    // Don't interfere with paste in input fields
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+      return;
+    }
+
+    const text = e.clipboardData?.getData('text');
+    if (!text || text.trim().length === 0) {
+      return;
+    }
+
+    // Show visual feedback
+    setIsPasting(true);
+    setError('');
+
+    try {
+      // Try to parse the pasted content
+      await handleFileLoad(text);
+    } catch (err) {
+      setError(`Failed to parse pasted content: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setIsPasting(false);
+    }
+  };
+
+  // Add paste event listener
+  useEffect(() => {
+    const pasteHandler = (e: ClipboardEvent) => handlePaste(e);
+    document.addEventListener('paste', pasteHandler);
+    
+    return () => {
+      document.removeEventListener('paste', pasteHandler);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div
       className="min-h-screen flex items-center justify-center p-4"
@@ -169,9 +205,23 @@ export default function HomePage() {
             VS Code Chat Log Viewer
           </h1>
           <p className="text-lg" style={{ color: '#969696' }}>
-            Paste a GitHub Gist URL or drop a JSON/text file to view your Copilot chat log
+            Paste a chat log (Ctrl+V / Cmd+V), drop a file, or use a GitHub Gist URL
           </p>
         </div>
+
+        {/* Paste indicator */}
+        {isPasting && (
+          <div
+            className="mb-6 rounded-lg p-4 text-center"
+            style={{
+              backgroundColor: 'rgba(0, 122, 204, 0.1)',
+              border: '1px solid #007acc',
+              color: '#007acc',
+            }}
+          >
+            Processing pasted content...
+          </div>
+        )}
 
         {/* History List */}
         <HistoryList />
@@ -337,7 +387,16 @@ export default function HomePage() {
           <div className="space-y-4">
             <div>
               <h3 className="font-medium mb-2" style={{ color: '#cccccc' }}>
-                Option 1: Drop a file
+                Option 1: Paste directly
+              </h3>
+              <ol className="space-y-1 text-sm ml-4" style={{ color: '#969696' }}>
+                <li>• Copy your chat log from VS Code</li>
+                <li>• Press Ctrl+V (or Cmd+V on Mac) anywhere on this page</li>
+              </ol>
+            </div>
+            <div>
+              <h3 className="font-medium mb-2" style={{ color: '#cccccc' }}>
+                Option 2: Drop a file
               </h3>
               <ol className="space-y-1 text-sm ml-4" style={{ color: '#969696' }}>
                 <li>• Export your chat from VS Code (as JSON)</li>
@@ -346,7 +405,7 @@ export default function HomePage() {
             </div>
             <div>
               <h3 className="font-medium mb-2" style={{ color: '#cccccc' }}>
-                Option 2: Use a Gist URL
+                Option 3: Use a Gist URL
               </h3>
               <ol className="space-y-1 text-sm ml-4" style={{ color: '#969696' }}>
                 <li>• Copy your chat log from VS Code</li>
