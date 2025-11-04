@@ -26,6 +26,19 @@ describe('test discovery and summary parsing', () => {
     }
   });
 
+  it('parses test summary line with skipped tests', () => {
+    const log = 'GitHub Copilot: Results\n11/11 tests passed (100%, 10 skipped)';
+    const { messages } = parseLog(log);
+    const segs = messages[0].contentSegments.filter(s => s.type === 'tool_call');
+    expect(segs).toHaveLength(1);
+    if (segs[0].type === 'tool_call') {
+      expect(segs[0].toolCall.type).toBe('test');
+      expect(segs[0].toolCall.output).toBe('11/11 (100%, 10 skipped)');
+      expect(segs[0].toolCall.skipped).toBe(10);
+      expect(segs[0].toolCall.status).toBe('completed');
+    }
+  });
+
   it('parses apply patch invocation', () => {
     const log = 'GitHub Copilot: Patch\nUsing "Apply Patch"';
     const { messages } = parseLog(log);

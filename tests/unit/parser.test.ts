@@ -47,6 +47,20 @@ Read [](file:///path/to/file.tsx)`;
     }
   });
 
+  it('should parse Simple Browser open line as navigate tool call', () => {
+    const log = 'GitHub Copilot: Browser\nOpened Simple Browser at http://localhost:3000/test-otp';
+    const result = parseLog(log);
+    const message = result.messages[0];
+    const toolSegments = message.contentSegments.filter(s => s.type === 'tool_call');
+    expect(toolSegments).toHaveLength(1);
+    if (toolSegments[0].type === 'tool_call') {
+      expect(toolSegments[0].toolCall.type).toBe('navigate');
+      expect(toolSegments[0].toolCall.action).toBe('Opened Simple Browser');
+      expect(toolSegments[0].toolCall.input).toBe('http://localhost:3000/test-otp');
+      expect(toolSegments[0].toolCall.status).toBe('completed');
+    }
+  });
+
   it('should parse file references', () => {
     const log = `GitHub Copilot: Checking files
 

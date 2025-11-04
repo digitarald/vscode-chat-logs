@@ -344,6 +344,23 @@ export class CopilotLogParser {
       };
     }
 
+    // Single replace invocation (one file)
+    const singleReplaceMatch = line.match(/^Using\s+"Replace String in File"/);
+    if (singleReplaceMatch) {
+      return {
+        type: 'replace',
+        action: 'Replace String in File',
+        status: 'completed',
+      };
+    }
+    if (line.trim() === 'Replace String in File') {
+      return {
+        type: 'replace',
+        action: 'Replace String in File',
+        status: 'completed',
+      };
+    }
+
     // Apply Patch invocation
     const applyPatchMatch = line.match(/^Using\s+"Apply Patch"/);
     if (applyPatchMatch) {
@@ -370,15 +387,29 @@ export class CopilotLogParser {
         status: 'pending',
       };
     }
-    const testSummary = line.match(/^(\d+)\/(\d+)\s+tests\s+passed\s+\((\d+)%\)/);
+    const testSummary = line.match(/^(\d+)\/(\d+)\s+tests\s+passed\s+\((\d+)%(?:,\s*(\d+)\s+skipped)?\)/);
     if (testSummary) {
       const passed = testSummary[1];
       const total = testSummary[2];
       const pct = testSummary[3];
+      const skippedRaw = testSummary[4];
+      const skipped = skippedRaw ? parseInt(skippedRaw, 10) : undefined;
       return {
         type: 'test',
         action: 'Tests passed',
-        output: `${passed}/${total} (${pct}%)`,
+        output: `${passed}/${total} (${pct}%${skipped !== undefined ? `, ${skipped} skipped` : ''})`,
+        status: 'completed',
+        ...(skipped !== undefined ? { skipped } : {}),
+      };
+    }
+
+    // Simple Browser open action
+    const simpleBrowserMatch = line.match(/^Opened Simple Browser at (https?:\/\/\S+)$/);
+    if (simpleBrowserMatch) {
+      return {
+        type: 'navigate',
+        action: 'Opened Simple Browser',
+        input: simpleBrowserMatch[1],
         status: 'completed',
       };
     }

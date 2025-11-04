@@ -16,6 +16,20 @@ describe('search & replace parsing', () => {
     }
   });
 
+  it('parses single replace invocation', () => {
+    const log = 'GitHub Copilot: Single replace\nUsing "Replace String in File"\nDone';
+    const result = parseLog(log);
+    const assistant = result.messages.find(m => m.role === 'assistant');
+    expect(assistant).toBeTruthy();
+    const toolSegments = assistant!.contentSegments.filter(s => s.type === 'tool_call');
+    const replaceSeg = toolSegments.find(s => s.type === 'tool_call' && s.toolCall.type === 'replace');
+    expect(replaceSeg).toBeTruthy();
+    if (replaceSeg?.type === 'tool_call') {
+      expect(replaceSeg.toolCall.action).toBe('Replace String in File');
+      expect(replaceSeg.toolCall.status).toBe('completed');
+    }
+  });
+
   it('parses regex search with count', () => {
     const log = 'GitHub Copilot: Search phase\nSearched for regex `View on GitHub|Footer`, 6 results';
     const { messages } = parseLog(log);

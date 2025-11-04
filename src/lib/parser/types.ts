@@ -43,6 +43,8 @@ export interface ToolCall {
   consoleOutput?: string[];
   pageSnapshot?: string; // YAML DOM snapshot
   fileEdits?: FileEdit[]; // For multi-replace operations
+  // Number of skipped tests in a test summary tool call (optional)
+  skipped?: number;
 }
 
 export interface CodeBlock {
