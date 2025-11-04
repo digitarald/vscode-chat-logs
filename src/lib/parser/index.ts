@@ -31,10 +31,22 @@ export class CopilotLogParser {
   private messageIdCounter = 0;
   private segmentOrderCounter = 0;
   private toolCallIdCounter = 0;
+  // Dynamically detected username (first line assumed to be "{username}: ...")
+  private userName: string | null = null;
 
   parse(logText: string): ParsedSession {
     const messages: ChatMessage[] = [];
     const lines = logText.split('\n');
+
+    // Capture username from first line if present (e.g. "alice:" )
+    if (!this.userName) {
+      const firstLine = lines[0] || '';
+      const firstUserMatch = firstLine.match(/^([^:]+):/);
+      if (firstUserMatch && firstUserMatch[1] !== 'GitHub Copilot') {
+        this.userName = firstUserMatch[1];
+      }
+    }
+    const userPrefixPattern = this.userName ? `${this.userName}:` : '\\w+:'; // fallback generic pattern
 
     let currentMessage: Partial<ChatMessage> | null = null;
     let currentContent: string[] = [];
@@ -131,7 +143,7 @@ export class CopilotLogParser {
           // But if we hit an empty line or new section, stop
           if (
             line.trim() === '' ||
-            line.match(/^(digitarald:|GitHub Copilot:|Ran |Searched |Read |Got output)/)
+            line.match(new RegExp(`^(${userPrefixPattern}|GitHub Copilot:|Ran |Searched |Read |Got output)`))
           ) {
             // Malformed JSON, just store what we have
             if (lastToolCall) {
@@ -147,9 +159,9 @@ export class CopilotLogParser {
         }
       }
 
-      // Detect user messages (digitarald:)
+      // Detect user messages (dynamic username captured from first line)
       const userMatch = line.match(/^(\w+):\s*(.+)/);
-      if (userMatch && userMatch[1] === 'digitarald') {
+      if (userMatch && userMatch[1] === this.userName) {
         if (currentMessage) {
           this.finalizeMessage(currentMessage, currentContent, contentSegments, messages);
         }
