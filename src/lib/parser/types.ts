@@ -10,6 +10,8 @@ export type ToolCallType =
   | 'snapshot'
   | 'run'
   | 'todo'
+  // Parent subagent orchestration call (e.g. runSubagent)
+  | 'subagent'
   // Multiple file/string replacement operations
   | 'replace'
   // Apply Patch operations
@@ -45,6 +47,10 @@ export interface ToolCall {
   fileEdits?: FileEdit[]; // For multi-replace operations
   // Number of skipped tests in a test summary tool call (optional)
   skipped?: number;
+  // True if this tool call originated from a subagent execution context
+  fromSubAgent?: boolean;
+  // True if this tool call is the root/orchestrator spawning subagents
+  isSubagentRoot?: boolean;
 }
 
 export interface CodeBlock {

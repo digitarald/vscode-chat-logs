@@ -139,6 +139,8 @@ export class JsonLogParser {
     const contentSegments: ContentSegment[] = [];
     let order = startOrder;
     let accumulatedText = ''; // Accumulate consecutive text segments
+    // Track last top-level (non-subagent) tool call to attach nested subagent calls
+    let lastTopLevelToolCall: ToolCall | null = null;
 
     const flushAccumulatedText = () => {
       if (accumulatedText) {
@@ -154,13 +156,13 @@ export class JsonLogParser {
     for (let i = 0; i < responseItems.length; i++) {
       const item = responseItems[i];
       const itemData = item as { kind?: string; inlineReference?: { name?: string } };
-      
+
       // Skip metadata items that should not be rendered as separate content
       const skipKinds = ['codeblockUri', 'textEditGroup', 'prepareToolInvocation', 'undoStop'];
       if (itemData.kind && skipKinds.includes(itemData.kind)) {
         continue;
       }
-      
+
       // Handle inline code references - accumulate them with surrounding text
       if (item.kind === 'inlineReference' && itemData.inlineReference) {
         const refName = itemData.inlineReference.name || '';
@@ -169,7 +171,7 @@ export class JsonLogParser {
         }
         continue;
       }
-      
+
       if (item.value && typeof item.value === 'string') {
         // Skip empty content or content that only contains code block markers
         const trimmed = item.value.trim();
@@ -186,18 +188,29 @@ export class JsonLogParser {
         const toolCall = this.parseToolCallFromItem(toolCallData);
         if (toolCall) {
           // For replace string tools (both multi and single), collect following textEditGroup items
-          if (toolCallData.toolId === 'copilot_multiReplaceString' || toolCallData.toolId === 'copilot_replaceString') {
+          if (
+            toolCallData.toolId === 'copilot_multiReplaceString' ||
+            toolCallData.toolId === 'copilot_replaceString'
+          ) {
             const fileEdits = this.collectFileEdits(responseItems, i + 1);
             if (fileEdits.length > 0) {
               toolCall.fileEdits = fileEdits;
             }
           }
-          
-          contentSegments.push({
-            type: 'tool_call',
-            toolCall,
-            order: order++,
-          });
+          // Group subagent calls under the previous top-level tool call
+          if (toolCall.fromSubAgent && lastTopLevelToolCall) {
+            lastTopLevelToolCall.subAgentCalls = lastTopLevelToolCall.subAgentCalls || [];
+            lastTopLevelToolCall.subAgentCalls.push(toolCall);
+          } else {
+            contentSegments.push({
+              type: 'tool_call',
+              toolCall,
+              order: order++,
+            });
+            if (!toolCall.fromSubAgent) {
+              lastTopLevelToolCall = toolCall; // update parent pointer
+            }
+          }
         }
       }
     }
@@ -219,8 +232,12 @@ export class JsonLogParser {
     const toolCallId = item.toolCallId as string;
     const invocationMsg = item.invocationMessage as string | { value: string } | undefined;
     const pastMsg = item.pastTenseMessage as string | { value: string } | undefined;
-    const source = item.source as { type?: string; serverLabel?: string; label?: string } | undefined;
-    const resultDetails = item.resultDetails as { input?: string; output?: Array<{ type: string; value: string; mimeType?: string }> } | undefined;
+    const source = item.source as
+      | { type?: string; serverLabel?: string; label?: string }
+      | undefined;
+    const resultDetails = item.resultDetails as
+      | { input?: string; output?: Array<{ type: string; value: string; mimeType?: string }> }
+      | undefined;
     const fromSubAgent = item.fromSubAgent === true;
 
     let action = this.extractMessage(pastMsg || invocationMsg);
@@ -291,13 +308,18 @@ export class JsonLogParser {
       pageSnapshot,
     };
 
+    // Mark subagent orchestrator root if applicable (runSubagent tool id)
+    if (/runSubagent/i.test(toolId)) {
+      toolCall.isSubagentRoot = true;
+    }
+
     if (source && source.type === 'mcp') {
       toolCall.mcpServer = source.serverLabel || source.label;
     }
 
     if (fromSubAgent) {
-      // Mark this as from subagent
-      toolCall.action = `[Subagent] ${toolCall.action}`;
+      // Flag as subagent (UI will handle indentation & prefix removal if present)
+      toolCall.fromSubAgent = true;
     }
 
     return toolCall;
@@ -312,15 +334,20 @@ export class JsonLogParser {
   }
 
   private mapToolIdToType(toolId: string): ToolCallType {
-    if (toolId.includes('read') || toolId.includes('Read')) return 'read';
-    if (toolId.includes('search') || toolId.includes('Search')) return 'search';
-    if (toolId.includes('navigate')) return 'navigate';
-    if (toolId.includes('click')) return 'click';
-    if (toolId.includes('type')) return 'type';
-    if (toolId.includes('screenshot')) return 'screenshot';
-    if (toolId.includes('snapshot')) return 'snapshot';
-    if (toolId.includes('run') || toolId.includes('Run')) return 'run';
-    if (toolId.includes('todo') || toolId.includes('Todo')) return 'todo';
+    const id = toolId || '';
+    // Order matters: check most specific identifiers before generic ones
+    if (id.match(/runSubagent/i)) return 'subagent';
+    if (id.match(/applyPatch/i)) return 'patch';
+    if (id.match(/multiReplaceString|replaceString/i)) return 'replace';
+    if (id.match(/runTests|test/i)) return 'test';
+    if (id.match(/read/i)) return 'read';
+    if (id.match(/search/i)) return 'search';
+    if (id.match(/navigate/i)) return 'navigate';
+    if (id.match(/click/i)) return 'click';
+    if (id.match(/type/i)) return 'type';
+    if (id.match(/screenshot|snapshot/i)) return 'screenshot';
+    if (id.match(/run/i)) return 'run';
+    if (id.match(/todo/i)) return 'todo';
     return 'other';
   }
 

@@ -309,20 +309,35 @@ describe('JSON Parser', () => {
       expect(segments[4].type).toBe('text');
     });
 
-    it('should mark subagent tool calls', () => {
+    it('should nest subagent tool calls under the previous top-level tool call', () => {
       const jsonLog = JSON.stringify({
         requesterUsername: 'digitarald',
         responderUsername: 'GitHub Copilot',
         requests: [
           {
             requestId: 'req-1',
-            message: { text: 'Run tests' },
+            message: { text: 'Plan' },
             response: [
               {
                 kind: 'toolInvocationSerialized',
+                toolId: 'copilot_runSubagent',
+                toolCallId: 'parent-1',
+                pastTenseMessage: 'Parser pattern research',
+                isComplete: true,
+              },
+              {
+                kind: 'toolInvocationSerialized',
                 toolId: 'copilot_readFile',
-                toolCallId: 'call-sub',
-                pastTenseMessage: 'Read test file',
+                toolCallId: 'child-1',
+                pastTenseMessage: 'Read file.tsx',
+                isComplete: true,
+                fromSubAgent: true,
+              },
+              {
+                kind: 'toolInvocationSerialized',
+                toolId: 'copilot_findTextInFiles',
+                toolCallId: 'child-2',
+                pastTenseMessage: 'Searched for regex `pattern`, 0 results',
                 isComplete: true,
                 fromSubAgent: true,
               },
@@ -332,10 +347,19 @@ describe('JSON Parser', () => {
       });
 
       const result = parseJsonLog(jsonLog);
-      const toolSegment = result.messages[1].contentSegments[0];
-      
-      if (toolSegment.type === 'tool_call') {
-        expect(toolSegment.toolCall.action).toContain('[Subagent]');
+      const segments = result.messages[1].contentSegments;
+      // Only one top-level tool call segment expected
+      expect(segments).toHaveLength(1);
+      const parentSeg = segments[0];
+      if (parentSeg.type === 'tool_call') {
+        expect(parentSeg.toolCall.action).toBe('Parser pattern research');
+        expect(parentSeg.toolCall.subAgentCalls).toBeDefined();
+        expect(parentSeg.toolCall.subAgentCalls).toHaveLength(2);
+        // Ensure child actions are sanitized (no legacy prefix)
+        const childActions = parentSeg.toolCall.subAgentCalls!.map((c) => c.action);
+        childActions.forEach((a) => expect(a.startsWith('[Subagent]')).toBe(false));
+        // Ensure fromSubAgent flag set
+        parentSeg.toolCall.subAgentCalls!.forEach((c) => expect(c.fromSubAgent).toBe(true));
       }
     });
 

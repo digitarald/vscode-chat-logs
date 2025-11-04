@@ -55,27 +55,55 @@ function FileEditItem({ fileEdit, index }: { fileEdit: { filePath: string; text:
 
 // ToolCall Component
 function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: number }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  
+  // Expand by default if this tool call has nested subagent calls
+  const [isExpanded, setIsExpanded] = useState(
+    Boolean(toolCall.subAgentCalls && toolCall.subAgentCalls.length > 0)
+  );
+
   const getIcon = () => {
     switch (toolCall.type) {
-      case 'read': return '📄';
-      case 'search': return '🔎';
-      case 'navigate': return '🌐';
-      case 'click': return '🖱️';
-      case 'type': return '⌨️';
-      case 'screenshot': return '📸';
-      case 'snapshot': return '📸';
-      case 'run': return '▶️';
-      case 'todo': return '✓';
-      default: return '⚙️';
+      case 'subagent':
+        return '🤖';
+      case 'read':
+        return '📄';
+      case 'search':
+        return '🔎';
+      case 'navigate':
+        return '🌐';
+      case 'click':
+        return '🖱️';
+      case 'type':
+        return '⌨️';
+      case 'screenshot':
+      case 'snapshot':
+        return '📸';
+      case 'run':
+        return '▶️';
+      case 'todo':
+        return '✓';
+      case 'patch':
+        return '🩹';
+      case 'replace':
+        return '✏️';
+      case 'test':
+        return '🧪';
+      default:
+        return '⚙️';
     }
   };
 
-  const hasDetails = toolCall.input || toolCall.output || toolCall.screenshot || 
-                     toolCall.consoleOutput || toolCall.pageSnapshot || 
-                     (toolCall.subAgentCalls && toolCall.subAgentCalls.length > 0) ||
-                     (toolCall.fileEdits && toolCall.fileEdits.length > 0);
+  // Status icon reflects completion state
+  const statusIcon =
+    toolCall.status === 'pending' ? '…' : toolCall.status === 'failed' ? '⚠' : '✓';
+
+  const hasDetails =
+    toolCall.input ||
+    toolCall.output ||
+    toolCall.screenshot ||
+    toolCall.consoleOutput ||
+    toolCall.pageSnapshot ||
+    (toolCall.subAgentCalls && toolCall.subAgentCalls.length > 0) ||
+    (toolCall.fileEdits && toolCall.fileEdits.length > 0);
 
   // Extract filename from file path for read operations
   const getFileDisplay = () => {
@@ -88,27 +116,41 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
   };
 
   const filename = getFileDisplay();
-  const displayAction = toolCall.type === 'read' && filename ? 'Read' : toolCall.action;
+  // Remove legacy "[Subagent]" prefix if present
+  const sanitizedAction = toolCall.action.replace(/^\[Subagent\]\s*/, '');
+  const displayAction = toolCall.type === 'read' && filename ? 'Read' : sanitizedAction;
 
   // Get unique file names from fileEdits
-  const editedFiles = toolCall.fileEdits 
-    ? Array.from(new Set(toolCall.fileEdits.map(edit => {
-        const parts = edit.filePath.split('/');
-        return parts[parts.length - 1] || edit.filePath;
-      })))
+  const editedFiles = toolCall.fileEdits
+    ? Array.from(
+        new Set(
+          toolCall.fileEdits.map((edit) => {
+            const parts = edit.filePath.split('/');
+            return parts[parts.length - 1] || edit.filePath;
+          })
+        )
+      )
     : [];
 
   // Determine if this is a file edit tool call
   const isFileEditToolCall = toolCall.fileEdits && toolCall.fileEdits.length > 0;
 
   return (
-    <div className="mb-0.5 rounded" style={{ backgroundColor: '#252526', border: '1px solid #3e3e42' }}>
+    <div
+      className="mb-0.5 rounded"
+      style={{
+        backgroundColor: '#252526',
+        border: '1px solid #3e3e42',
+        // Indent nested subagent calls
+        marginLeft: depth > 0 ? depth * 12 : 0,
+      }}
+    >
       <div
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full flex items-center gap-2 cursor-pointer transition-colors select-text"
         style={{ padding: '6px 12px' }}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2d2d30'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2d2d30')}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
@@ -122,32 +164,55 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
         aria-controls={`tool-details-${toolCall.toolCallId || toolCall.action}`}
       >
         {/* Status and main icon remain non-selectable */}
-        <span className="text-xs select-none" style={{ color: '#89d185' }}>✓</span>
-        <span className="text-sm select-none">
+        <span
+          className="text-xs select-none"
+          style={{
+            color:
+              toolCall.status === 'failed'
+                ? '#f48771'
+                : toolCall.status === 'pending'
+                  ? '#cca700'
+                  : '#89d185',
+          }}
+        >
+          {statusIcon}
+        </span>
+        {/* Show robot indicator for nested subagent calls in addition to their tool-specific icon */}
+        {toolCall.fromSubAgent && toolCall.type !== 'subagent' && (
+          <span className="text-sm select-none" data-testid="subagent-icon" title="Subagent call">
+            🤖
+          </span>
+        )}
+        <span
+          className="text-sm select-none"
+          data-testid={toolCall.type === 'subagent' ? 'subagent-root-icon' : undefined}
+        >
           {isFileEditToolCall ? '✏️' : getIcon()}
         </span>
         <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
-          <span className="text-xs" style={{ color: '#cccccc' }}>{displayAction}</span>
+          <span className="text-xs" style={{ color: '#cccccc' }}>
+            {displayAction}
+          </span>
           {filename && (
-            <span 
+            <span
               className="text-xs px-2 py-0.5 rounded"
-              style={{ 
-                backgroundColor: 'rgba(96, 96, 96, 0.2)', 
+              style={{
+                backgroundColor: 'rgba(96, 96, 96, 0.2)',
                 color: '#969696',
-                border: '1px solid rgba(96, 96, 96, 0.3)'
+                border: '1px solid rgba(96, 96, 96, 0.3)',
               }}
             >
               {filename}
             </span>
           )}
           {editedFiles.map((file, idx) => (
-            <span 
+            <span
               key={idx}
               className="text-xs px-2 py-0.5 rounded font-mono"
-              style={{ 
-                backgroundColor: 'rgba(79, 195, 247, 0.15)', 
+              style={{
+                backgroundColor: 'rgba(79, 195, 247, 0.15)',
                 color: '#4fc3f7',
-                border: '1px solid rgba(79, 195, 247, 0.3)'
+                border: '1px solid rgba(79, 195, 247, 0.3)',
               }}
             >
               {file}
@@ -165,37 +230,67 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
           </span>
         )}
       </div>
-      
+
       {isExpanded && hasDetails && (
-        <div className="text-xs space-y-2 select-text" style={{ padding: '8px 12px', borderTop: '1px solid #3e3e42' }}>
+        <div
+          className="text-xs space-y-2 select-text"
+          style={{ padding: '8px 12px', borderTop: '1px solid #3e3e42' }}
+        >
           {toolCall.input && (
             <div>
-              <span className="font-semibold block mb-1" style={{ color: '#969696' }}>Input:</span>
-              <pre className="rounded overflow-x-auto select-text" style={{ padding: '12px', color: '#cccccc', backgroundColor: '#1e1e1e', border: '1px solid #3e3e42' }}>
-                {typeof toolCall.input === 'string' 
-                  ? toolCall.input 
+              <span className="font-semibold block mb-1" style={{ color: '#969696' }}>
+                Input:
+              </span>
+              <pre
+                className="rounded overflow-x-auto select-text"
+                style={{
+                  padding: '12px',
+                  color: '#cccccc',
+                  backgroundColor: '#1e1e1e',
+                  border: '1px solid #3e3e42',
+                }}
+              >
+                {typeof toolCall.input === 'string'
+                  ? toolCall.input
                   : JSON.stringify(toolCall.input, null, 2)}
               </pre>
             </div>
           )}
-          
+
           {toolCall.output && !toolCall.screenshot && !toolCall.consoleOutput && (
             <div>
-              <span className="font-semibold block mb-1" style={{ color: '#969696' }}>Output:</span>
-              <pre className="rounded overflow-x-auto whitespace-pre-wrap break-words select-text" style={{ padding: '12px', color: '#cccccc', backgroundColor: '#1e1e1e', border: '1px solid #3e3e42' }}>{toolCall.output}</pre>
+              <span className="font-semibold block mb-1" style={{ color: '#969696' }}>
+                Output:
+              </span>
+              <pre
+                className="rounded overflow-x-auto whitespace-pre-wrap break-words select-text"
+                style={{
+                  padding: '12px',
+                  color: '#cccccc',
+                  backgroundColor: '#1e1e1e',
+                  border: '1px solid #3e3e42',
+                }}
+              >
+                {toolCall.output}
+              </pre>
             </div>
           )}
-          
+
           {toolCall.screenshot && (
             <div>
-              <span className="font-semibold block mb-2" style={{ color: '#969696' }}>Screenshot:</span>
+              <span className="font-semibold block mb-2" style={{ color: '#969696' }}>
+                Screenshot:
+              </span>
               <details className="group">
-                <summary className="cursor-pointer mb-2" style={{ color: '#4fc3f7' }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#1a8dd8'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#4fc3f7'}>
+                <summary
+                  className="cursor-pointer mb-2"
+                  style={{ color: '#4fc3f7' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = '#1a8dd8')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = '#4fc3f7')}
+                >
                   Click to expand screenshot
                 </summary>
-                <img 
+                <img
                   src={`data:image/png;base64,${toolCall.screenshot}`}
                   alt="Screenshot"
                   className="max-w-full rounded"
@@ -204,19 +299,26 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
               </details>
             </div>
           )}
-          
+
           {toolCall.consoleOutput && toolCall.consoleOutput.length > 0 && (
             <div>
-              <span className="font-semibold block mb-1" style={{ color: '#969696' }}>Console Output ({toolCall.consoleOutput.length}):</span>
-              <div className="p-3 rounded space-y-1 max-h-48 overflow-y-auto select-text" style={{ backgroundColor: '#1e1e1e', border: '1px solid #3e3e42' }}>
+              <span className="font-semibold block mb-1" style={{ color: '#969696' }}>
+                Console Output ({toolCall.consoleOutput.length}):
+              </span>
+              <div
+                className="p-3 rounded space-y-1 max-h-48 overflow-y-auto select-text"
+                style={{ backgroundColor: '#1e1e1e', border: '1px solid #3e3e42' }}
+              >
                 {toolCall.consoleOutput.map((log, idx) => (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     className="text-xs font-mono"
                     style={{
-                      color: log.includes('[ERROR]') ? '#f48771' : 
-                             log.includes('[WARN]') ? '#cca700' : 
-                             '#cccccc'
+                      color: log.includes('[ERROR]')
+                        ? '#f48771'
+                        : log.includes('[WARN]')
+                          ? '#cca700'
+                          : '#cccccc',
                     }}
                   >
                     {log}
@@ -225,17 +327,29 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
               </div>
             </div>
           )}
-          
+
           {toolCall.pageSnapshot && (
             <div>
-              <span className="font-semibold block mb-1" style={{ color: '#969696' }}>Page State:</span>
+              <span className="font-semibold block mb-1" style={{ color: '#969696' }}>
+                Page State:
+              </span>
               <details className="group">
-                <summary className="cursor-pointer" style={{ color: '#4fc3f7' }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#1a8dd8'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#4fc3f7'}>
+                <summary
+                  className="cursor-pointer"
+                  style={{ color: '#4fc3f7' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = '#1a8dd8')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = '#4fc3f7')}
+                >
                   View DOM snapshot
                 </summary>
-                <pre className="p-3 rounded overflow-x-auto text-xs mt-2 max-h-96 overflow-y-auto select-text" style={{ color: '#cccccc', backgroundColor: '#1e1e1e', border: '1px solid #3e3e42' }}>
+                <pre
+                  className="p-3 rounded overflow-x-auto text-xs mt-2 max-h-96 overflow-y-auto select-text"
+                  style={{
+                    color: '#cccccc',
+                    backgroundColor: '#1e1e1e',
+                    border: '1px solid #3e3e42',
+                  }}
+                >
                   {toolCall.pageSnapshot}
                 </pre>
               </details>
@@ -243,7 +357,9 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
           )}
           {toolCall.fileEdits && toolCall.fileEdits.length > 0 && (
             <div>
-              <span className="font-semibold block mb-2" style={{ color: '#969696' }}>Files Modified ({toolCall.fileEdits.length}):</span>
+              <span className="font-semibold block mb-2" style={{ color: '#969696' }}>
+                Files Modified ({toolCall.fileEdits.length}):
+              </span>
               <div className="space-y-2">
                 {toolCall.fileEdits.map((fileEdit, idx) => (
                   <FileEditItem key={idx} fileEdit={fileEdit} index={idx} />
@@ -251,15 +367,12 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
               </div>
             </div>
           )}
-          
+
           {toolCall.subAgentCalls && toolCall.subAgentCalls.length > 0 && (
-            <div>
-              <span className="font-semibold block mb-2" style={{ color: '#969696' }}>Subagent Actions ({toolCall.subAgentCalls.length}):</span>
-              <div className="space-y-2">
-                {toolCall.subAgentCalls.map((subCall, idx) => (
-                  <ToolCallItem key={idx} toolCall={subCall} depth={depth + 1} />
-                ))}
-              </div>
+            <div className="space-y-2">
+              {toolCall.subAgentCalls.map((subCall, idx) => (
+                <ToolCallItem key={idx} toolCall={subCall} depth={depth + 1} />
+              ))}
             </div>
           )}
         </div>

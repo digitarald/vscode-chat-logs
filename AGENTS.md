@@ -18,6 +18,7 @@
 8. [AI Agent Guidelines](#ai-agent-guidelines)
 9. [Examples](#examples)
 10. [Troubleshooting](#troubleshooting)
+11. [Subagent Tool Calls](#-subagent-tool-calls)
 
 ---
 
@@ -704,7 +705,7 @@ npm run type-check
 npm run lint
 npm test
 
-# 4. Start dev server
+# 4. Start dev server (usually already runs)
 npm run dev
 
 # 5. Start test watch mode (in another terminal)
@@ -1300,6 +1301,63 @@ A: The interleaved architecture solves the critical bug where all text appeared 
 
 **Q: Why use useRef to prevent double-loading?**
 A: React StrictMode in development intentionally runs effects twice to catch bugs. For operations that consume resources (like removing from sessionStorage), we use a ref to track completion and prevent the second execution from causing errors. The ref persists across renders but doesn't trigger re-renders, making it ideal for tracking initialization state.
+
+**Q: How are subagent tool calls represented?**
+A: Nested calls set `fromSubAgent: true` and are stored under the parent tool call's `subAgentCalls` array. The UI auto-expands parents containing subagent calls, applies an indentation of 12px per depth level, and shows a 🤖 icon for each nested subagent-originated call. This preserves ordering while visually distinguishing delegated work.
+
+
+## 🤖 Subagent Tool Calls
+
+**Purpose:** Visually distinguish and structurally nest tool calls executed by spawned subagents while keeping parent tool call context intact.
+
+**Data Model:**
+- `fromSubAgent: true` flag on nested tool calls (set by JSON parser).
+- Nested calls collected under `subAgentCalls` array of the last preceding top-level (non-subagent) tool call.
+- Legacy text prefixes like `[Subagent]` are stripped during UI rendering for cleaner display.
+
+**Parser Behavior (JSON):**
+1. Iterate response items; when encountering a tool invocation with `fromSubAgent: true`, attach to `lastTopLevelToolCall.subAgentCalls` instead of emitting a top-level segment.
+2. Maintains original ordering; accumulated text segments are flushed before tool calls ensuring correct interleaving.
+3. For read operations inside subagents, file path is reduced to filename and action normalized to `Read <filename>`.
+
+**UI Behavior (`ChatMessage.tsx`):**
+- `ToolCallItem` receives `depth` (starting at 0 for top-level). Nested subagent calls increment depth by 1.
+- Indentation via inline style: `marginLeft = depth * 12` (px) for wrapper `<div class="mb-0.5 rounded">`.
+- Auto-expansion: Parent tool call initializes `isExpanded` to true when it has any `subAgentCalls`.
+- Icon logic (updated):
+  - Parent orchestrator (`toolCall.type === 'subagent'`) shows a root 🤖 icon (`data-testid="subagent-root-icon"`).
+  - Nested subagent calls show a leading 🤖 indicator plus their normal tool-specific icon (e.g. 📄 for read) for styling parity.
+  - Status icon now reflects `toolCall.status`: ✓ completed, … pending, ⚠ failed.
+- Accessibility: Each clickable header includes `aria-label="Toggle details for <Action>"` and `aria-expanded`. Tests use this stable label rather than brittle text concatenation.
+
+**Testing (`tests/unit/subagent-icon.test.tsx`):**
+```typescript
+it('shows 🤖 icon for nested subagent tool calls and expands parent by default', () => {
+  const parsed = parseLog(JSON.stringify(fixture));
+  render(<ChatMessage message={assistantMessage} />);
+  expect(screen.getAllByText('🤖')).toHaveLength(1); // icon present
+  const toggle = screen.getByLabelText('Toggle details for Read index.ts'); // nested read call
+  const wrapper = toggle.parentElement; // indentation wrapper
+  expect(wrapper?.getAttribute('style')).toMatch(/margin-left:\s*12px/);
+});
+```
+
+**Edge Cases Covered:**
+- Multiple subagent calls under one parent → all indented equally.
+- Mixed file edits + subagent calls → edits first, nested calls below.
+- Read tool calls inside subagents preserve filename extraction and icon.
+- No parent present (malformed log) → subagent calls treated as top-level (fallback).
+
+**Extending Feature:**
+1. Add new tool type icon in `getIcon()` if needed (keep robot indicator separate when `fromSubAgent`).
+2. Ensure JSON export uses `fromSubAgent` for nested calls and `runSubagent` maps to `type: 'subagent'`.
+3. Write a unit test asserting: root subagent icon, nested subagent indicator, indentation depth, auto-expansion, and status icon correctness.
+4. Avoid relying on raw text spanning multiple `<span>`s; prefer ARIA labels or `data-testid`.
+
+**Design Rationale:**
+- Nesting clarifies causal relationship between parent action and delegated subagent work.
+- Indentation + icon avoids verbose textual prefixes that previously cluttered display.
+- Auto-expansion reduces friction—users immediately see delegated work context.
 
 ---
 
