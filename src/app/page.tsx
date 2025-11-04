@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { gistFetcher } from '@/lib/gist-fetcher';
 import { parseLog } from '@/lib/parser';
+import { EXAMPLE_GISTS, getExampleLabel, formatGistId } from '@/lib/examples';
 
 export default function HomePage() {
   const router = useRouter();
@@ -140,10 +141,16 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(to bottom right, #1e1e1e, #252526, #1e1e1e)' }}>
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{ background: 'linear-gradient(to bottom right, #1e1e1e, #252526, #1e1e1e)' }}
+    >
       <div className="max-w-2xl w-full">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-6" style={{ backgroundColor: '#007acc' }}>
+          <div
+            className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-6"
+            style={{ backgroundColor: '#007acc' }}
+          >
             <span className="text-4xl">💬</span>
           </div>
           <h1 className="text-4xl font-bold mb-4" style={{ color: '#cccccc' }}>
@@ -196,7 +203,12 @@ export default function HomePage() {
 
         <div className="relative flex items-center justify-center mb-6">
           <div className="border-t w-full" style={{ borderColor: '#3e3e42' }}></div>
-          <span className="absolute px-4 text-sm" style={{ backgroundColor: '#1e1e1e', color: '#969696' }}>OR</span>
+          <span
+            className="absolute px-4 text-sm"
+            style={{ backgroundColor: '#1e1e1e', color: '#969696' }}
+          >
+            OR
+          </span>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -223,7 +235,15 @@ export default function HomePage() {
           </div>
 
           {error && (
-            <div id="error-message" className="rounded-lg p-4" style={{ backgroundColor: 'rgba(244, 135, 113, 0.3)', border: '1px solid #f48771', color: '#f48771' }}>
+            <div
+              id="error-message"
+              className="rounded-lg p-4"
+              style={{
+                backgroundColor: 'rgba(244, 135, 113, 0.3)',
+                border: '1px solid #f48771',
+                color: '#f48771',
+              }}
+            >
               {error}
             </div>
           )}
@@ -234,7 +254,7 @@ export default function HomePage() {
             className="w-full text-white font-semibold py-4 px-6 rounded-lg transition-colors"
             style={{
               backgroundColor: !gistUrl || loading ? '#3e3e42' : '#007acc',
-              cursor: (!gistUrl || loading) ? 'not-allowed' : 'pointer',
+              cursor: !gistUrl || loading ? 'not-allowed' : 'pointer',
             }}
             onMouseEnter={(e) => {
               if (!(!gistUrl || loading)) {
@@ -251,55 +271,68 @@ export default function HomePage() {
           </button>
         </form>
 
-        {/* Example Gists */}
-        <div className="mt-12 rounded-lg p-6" style={{ backgroundColor: '#252526', border: '1px solid #3e3e42' }} aria-labelledby="example-gists-heading">
-          <h2 id="example-gists-heading" className="font-semibold mb-3 flex items-center gap-2" style={{ color: '#cccccc' }}>
+        {/* Example Gists (now data-driven & label-aware) */}
+        <div
+          className="mt-12 rounded-lg p-6"
+          style={{ backgroundColor: '#252526', border: '1px solid #3e3e42' }}
+          aria-labelledby="example-gists-heading"
+        >
+          <h2
+            id="example-gists-heading"
+            className="font-semibold mb-3 flex items-center gap-2"
+            style={{ color: '#cccccc' }}
+          >
             <span>🔗</span>
             Example Gists
           </h2>
           <p className="text-sm mb-4" style={{ color: '#969696' }}>
-            Try one of these sample Copilot chat logs to see the viewer in action:
+            Quick samples – open one to see the viewer:
           </p>
-          <ul className="space-y-2 text-sm" style={{ color: '#969696' }}>
-            <li>
-              <Link
-                href="/view?gistId=c4cfa2f93b5a47e815f3fcb6d8d442cb"
-                className="underline"
-                style={{ color: '#007acc' }}
-              >
-                Example 1 (c4cfa2…442cb)
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/view?gistId=3c4369b6b19b509d40460413c8b3a333"
-                className="underline"
-                style={{ color: '#007acc' }}
-              >
-                Example 2 (3c4369…a333)
-              </Link>
-            </li>
-          </ul>
-          <p className="text-xs mt-4" style={{ color: '#5a5a5a' }}>
-            These links fetch the raw Gist content on the client (subject to GitHub API rate limits).
-          </p>
+          <div className="flex flex-wrap gap-2" aria-label="Example Copilot chat logs">
+            {EXAMPLE_GISTS.map((gist) => {
+              const display = getExampleLabel(gist);
+              const truncated = formatGistId(gist.id);
+              return (
+                <Link
+                  key={gist.id}
+                  href={`/view?gistId=${gist.id}`}
+                  className="px-3 py-1 rounded-full text-xs font-medium focus:outline-none focus:ring-2"
+                  style={{
+                    backgroundColor: '#2d2d2d',
+                    border: '1px solid #3e3e42',
+                    color: '#cccccc',
+                  }}
+                  aria-label={`Open example chat log ${display} (${truncated})`}
+                >
+                  {display}
+                </Link>
+              );
+            })}
+          </div>
         </div>
 
-        <div className="mt-12 rounded-lg p-6" style={{ backgroundColor: '#252526', border: '1px solid #3e3e42' }}>
+        <div
+          className="mt-12 rounded-lg p-6"
+          style={{ backgroundColor: '#252526', border: '1px solid #3e3e42' }}
+        >
           <h2 className="font-semibold mb-3 flex items-center gap-2" style={{ color: '#cccccc' }}>
             <span>📝</span>
             How to use:
           </h2>
           <div className="space-y-4">
             <div>
-              <h3 className="font-medium mb-2" style={{ color: '#cccccc' }}>Option 1: Drop a file</h3>
+              <h3 className="font-medium mb-2" style={{ color: '#cccccc' }}>
+                Option 1: Drop a file
+              </h3>
               <ol className="space-y-1 text-sm ml-4" style={{ color: '#969696' }}>
                 <li>• Export your chat from VS Code (as JSON)</li>
                 <li>• Drag and drop the file above</li>
               </ol>
             </div>
             <div>
-              <h3 className="font-medium mb-2" style={{ color: '#cccccc' }}>Option 2: Use a Gist URL</h3>
+              <h3 className="font-medium mb-2" style={{ color: '#cccccc' }}>
+                Option 2: Use a Gist URL
+              </h3>
               <ol className="space-y-1 text-sm ml-4" style={{ color: '#969696' }}>
                 <li>• Copy your chat log from VS Code</li>
                 <li>• Create a GitHub Gist and paste the log</li>
@@ -308,7 +341,6 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );

@@ -26,16 +26,6 @@ Share your Copilot conversations with others in a readable, shareable format. Pe
 - ⚡ Static site - no server required
 - 🔗 Shareable via URL
 
-## Example Gists
-
-You can explore the viewer immediately by opening one of these sample Copilot chat logs:
-
-| Description | Direct Viewer Link | Raw Gist |
-|-------------|--------------------|----------|
-| Sample Chat Log 1 | `/view?gistId=c4cfa2f93b5a47e815f3fcb6d8d442cb` | https://gist.github.com/digitarald/c4cfa2f93b5a47e815f3fcb6d8d442cb |
-| Sample Chat Log 2 | `/view?gistId=3c4369b6b19b509d40460413c8b3a333` | https://gist.github.com/digitarald/3c4369b6b19b509d40460413c8b3a333 |
-
-Click the viewer links (after running the dev server or on the deployed site) to load the chat log. Fetching relies on the public GitHub Gist API and is subject to unauthenticated rate limits (60 requests/hour).
 
 ## Development
 
