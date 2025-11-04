@@ -172,16 +172,50 @@ function ViewerContent() {
               >
                 ←
               </Link>
-              <h1 className="text-lg font-semibold flex items-center gap-2" style={{ color: '#cccccc' }}>
-                <span>💬</span>
-                GitHub Copilot Chat Log
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-semibold flex items-center gap-2" style={{ color: '#cccccc' }}>
+                  <span>💬</span>
+                  VS Code Chat Log
+                </h1>
+                {gistId && (
+                  <a
+                    href={`https://gist.github.com/${gistId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm transition-colors"
+                    style={{ color: '#007acc' }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#1a8dd8'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = '#007acc'}
+                    aria-label="Open Gist in new tab"
+                  >
+                    🔗
+                  </a>
+                )}
+              </div>
             </div>
             
             {session?.metadata && (
-              <div className="flex gap-4 text-sm" style={{ color: '#969696' }}>
-                <span>{session.metadata.totalMessages} messages</span>
-                <span>{session.metadata.toolCallCount} tool calls</span>
+              <div className="flex gap-2 text-xs">
+                <span 
+                  className="px-2 py-1 rounded"
+                  style={{ 
+                    backgroundColor: 'rgba(0, 122, 204, 0.1)', 
+                    color: '#969696',
+                    border: '1px solid rgba(0, 122, 204, 0.3)'
+                  }}
+                >
+                  {session.metadata.totalMessages} messages
+                </span>
+                <span 
+                  className="px-2 py-1 rounded"
+                  style={{ 
+                    backgroundColor: 'rgba(0, 122, 204, 0.1)', 
+                    color: '#969696',
+                    border: '1px solid rgba(0, 122, 204, 0.3)'
+                  }}
+                >
+                  {session.metadata.toolCallCount} tool calls
+                </span>
               </div>
             )}
           </div>
