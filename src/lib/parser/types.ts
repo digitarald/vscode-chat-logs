@@ -34,6 +34,8 @@ export interface FileEdit {
 export interface ToolCall {
   type: ToolCallType;
   action: string;
+  // Original, unnormalized action text as it appeared in the log (e.g. starts with "Ran ", "Using ", etc.)
+  rawAction?: string;
   input?: string | Record<string, unknown>;
   output?: string;
   status?: 'pending' | 'completed' | 'failed';
@@ -51,6 +53,8 @@ export interface ToolCall {
   fromSubAgent?: boolean;
   // True if this tool call is the root/orchestrator spawning subagents
   isSubagentRoot?: boolean;
+  // Normalized numeric result count for search operations (derived from output or rawAction)
+  normalizedResultCount?: number;
 }
 
 export interface CodeBlock {

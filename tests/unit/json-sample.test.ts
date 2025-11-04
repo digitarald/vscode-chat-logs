@@ -71,6 +71,44 @@ describe('Real JSON Sample Parsing', () => {
     }
   });
 
+  it('derives normalized result counts and rawAction for search tool calls in small.json', () => {
+    const samplePath = join(process.cwd(), 'samples', 'small.json');
+    const jsonContent = readFileSync(samplePath, 'utf-8');
+    const result = parseLog(jsonContent);
+
+    const searchCalls = result.messages
+      .flatMap((m) => m.contentSegments)
+      .filter((seg) => seg.type === 'tool_call' && seg.toolCall.type === 'search')
+      .map((seg) => (seg.type === 'tool_call' ? seg.toolCall : null))
+      .filter((tc) => tc !== null);
+
+    expect(searchCalls.length).toBeGreaterThanOrEqual(2); // files matching + regex search
+
+    const regexCall = searchCalls.find((c) => c && c.action.includes('regex'));
+    const filesMatchCall = searchCalls.find((c) => c && c.action.includes('files matching'));
+
+    expect(regexCall).toBeTruthy();
+    expect(filesMatchCall).toBeTruthy();
+
+    if (regexCall) {
+      // JSON parser may not set output for search; rely on rawAction fallback
+      expect(regexCall.output === undefined || regexCall.output.includes('6 results')).toBe(true);
+      expect(regexCall.rawAction).toContain('6 results');
+      expect(regexCall.normalizedResultCount).toBe(6);
+      expect(regexCall.rawAction).toMatch(/Searched for regex/);
+    }
+
+    if (filesMatchCall) {
+      // Output may be undefined; normalizedResultCount handles parity
+      expect(filesMatchCall.output === undefined || filesMatchCall.output === '0 results').toBe(
+        true
+      );
+      expect(filesMatchCall.normalizedResultCount).toBe(0);
+      expect(filesMatchCall.rawAction).toMatch(/Searched for files matching/);
+      expect(filesMatchCall.rawAction).toMatch(/no matches|no results/);
+    }
+  });
+
   it('should correctly associate file edits with multi-replace tool calls', () => {
     const samplePath = join(process.cwd(), 'samples', 'small.json');
     const jsonContent = readFileSync(samplePath, 'utf-8');

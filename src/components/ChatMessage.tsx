@@ -59,6 +59,8 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
   const [isExpanded, setIsExpanded] = useState(
     Boolean(toolCall.subAgentCalls && toolCall.subAgentCalls.length > 0)
   );
+  // Separate state for subagent I/O section collapse
+  const [isSubagentIOExpanded, setIsSubagentIOExpanded] = useState(false);
 
   const getIcon = () => {
     switch (toolCall.type) {
@@ -95,6 +97,10 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
   // Status icon reflects completion state
   const statusIcon =
     toolCall.status === 'pending' ? '…' : toolCall.status === 'failed' ? '⚠' : '✓';
+
+  // For subagent orchestrator, always show details if there's input/output OR nested calls
+  const isSubagentRoot = toolCall.type === 'subagent';
+  const hasSubagentIO = isSubagentRoot && (toolCall.input || toolCall.output);
 
   const hasDetails =
     toolCall.input ||
@@ -236,7 +242,140 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
           className="text-xs space-y-2 select-text"
           style={{ padding: '8px 12px', borderTop: '1px solid #3e3e42' }}
         >
-          {toolCall.input && (
+          {/* For subagent orchestrator, show input/output in collapsible section */}
+          {isSubagentRoot && hasSubagentIO && (
+            <div className="mb-2">
+              <button
+                onClick={() => setIsSubagentIOExpanded(!isSubagentIOExpanded)}
+                className="flex items-center gap-2 w-full text-left hover:bg-gray-700/30 rounded px-2 py-1"
+                style={{ color: '#969696' }}
+                aria-label={`Toggle subagent call details`}
+                aria-expanded={isSubagentIOExpanded}
+              >
+                <span className="text-xs select-none">{isSubagentIOExpanded ? '▼' : '▶'}</span>
+                <span className="font-semibold text-xs">Subagent call</span>
+              </button>
+
+              {isSubagentIOExpanded && (
+                <div className="mt-2 space-y-2">
+                  {toolCall.input && (
+                    <div>
+                      <span
+                        className="font-semibold block mb-1 text-xs"
+                        style={{ color: '#969696' }}
+                      >
+                        Prompt:
+                      </span>
+                      <pre
+                        className="rounded overflow-x-auto select-text"
+                        style={{
+                          padding: '12px',
+                          color: '#cccccc',
+                          backgroundColor: '#1e1e1e',
+                          border: '1px solid #3e3e42',
+                          maxHeight: '400px',
+                          overflowY: 'auto',
+                          fontSize: '11px',
+                        }}
+                      >
+                        {typeof toolCall.input === 'string'
+                          ? toolCall.input
+                          : JSON.stringify(toolCall.input, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                  {toolCall.output && (
+                    <div>
+                      <span
+                        className="font-semibold block mb-1 text-xs"
+                        style={{ color: '#969696' }}
+                      >
+                        Result:
+                      </span>
+                      <div
+                        className="rounded overflow-x-auto select-text"
+                        style={{
+                          padding: '12px',
+                          color: '#cccccc',
+                          backgroundColor: '#1e1e1e',
+                          border: '1px solid #3e3e42',
+                          maxHeight: '600px',
+                          overflowY: 'auto',
+                        }}
+                      >
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            p: ({ children }: { children?: React.ReactNode }) => (
+                              <p className="mb-2">{children}</p>
+                            ),
+                            h2: ({ children }) => (
+                              <h2
+                                className="text-sm font-bold mb-1 mt-2 first:mt-0"
+                                style={{ color: '#cccccc' }}
+                              >
+                                {children}
+                              </h2>
+                            ),
+                            code: ({
+                              inline,
+                              children,
+                            }: {
+                              inline?: boolean;
+                              children?: React.ReactNode;
+                            }) =>
+                              inline ? (
+                                <code
+                                  className="px-1.5 py-0.5 rounded font-mono"
+                                  style={{
+                                    backgroundColor: '#2d2d30',
+                                    color: '#d7ba7d',
+                                    fontSize: '11px',
+                                  }}
+                                >
+                                  {children}
+                                </code>
+                              ) : (
+                                <code
+                                  className="font-mono"
+                                  style={{ color: '#cccccc', fontSize: '11px' }}
+                                >
+                                  {children}
+                                </code>
+                              ),
+                            pre: ({ children }: { children?: React.ReactNode }) => (
+                              <pre
+                                className="rounded overflow-x-auto my-1"
+                                style={{
+                                  padding: '6px',
+                                  backgroundColor: '#252526',
+                                  border: '1px solid #3e3e42',
+                                  fontSize: '11px',
+                                }}
+                              >
+                                {children}
+                              </pre>
+                            ),
+                            ul: ({ children }: { children?: React.ReactNode }) => (
+                              <ul className="list-disc ml-4 mb-1 space-y-0.5">{children}</ul>
+                            ),
+                            li: ({ children }: { children?: React.ReactNode }) => (
+                              <li style={{ color: '#cccccc' }}>{children}</li>
+                            ),
+                          }}
+                        >
+                          {toolCall.output}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* For non-subagent tool calls, show input/output as before */}
+          {!isSubagentRoot && toolCall.input && (
             <div>
               <span className="font-semibold block mb-1" style={{ color: '#969696' }}>
                 Input:
@@ -257,24 +396,27 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
             </div>
           )}
 
-          {toolCall.output && !toolCall.screenshot && !toolCall.consoleOutput && (
-            <div>
-              <span className="font-semibold block mb-1" style={{ color: '#969696' }}>
-                Output:
-              </span>
-              <pre
-                className="rounded overflow-x-auto whitespace-pre-wrap break-words select-text"
-                style={{
-                  padding: '12px',
-                  color: '#cccccc',
-                  backgroundColor: '#1e1e1e',
-                  border: '1px solid #3e3e42',
-                }}
-              >
-                {toolCall.output}
-              </pre>
-            </div>
-          )}
+          {!isSubagentRoot &&
+            toolCall.output &&
+            !toolCall.screenshot &&
+            !toolCall.consoleOutput && (
+              <div>
+                <span className="font-semibold block mb-1" style={{ color: '#969696' }}>
+                  Output:
+                </span>
+                <pre
+                  className="rounded overflow-x-auto whitespace-pre-wrap break-words select-text"
+                  style={{
+                    padding: '12px',
+                    color: '#cccccc',
+                    backgroundColor: '#1e1e1e',
+                    border: '1px solid #3e3e42',
+                  }}
+                >
+                  {toolCall.output}
+                </pre>
+              </div>
+            )}
 
           {toolCall.screenshot && (
             <div>

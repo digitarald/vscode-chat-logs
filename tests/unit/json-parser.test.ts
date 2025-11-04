@@ -103,7 +103,9 @@ describe('JSON Parser', () => {
       
       if (toolSegment.type === 'tool_call') {
         expect(toolSegment.toolCall.type).toBe('navigate');
-        expect(toolSegment.toolCall.action).toBe('Ran Navigate to a URL');
+        // Action is normalized ("Ran" prefix stripped); rawAction preserves original
+        expect(toolSegment.toolCall.action).toBe('Navigate to a URL');
+        expect(toolSegment.toolCall.rawAction).toBe('Ran Navigate to a URL');
         expect(toolSegment.toolCall.toolCallId).toBe('call-123');
         expect(toolSegment.toolCall.mcpServer).toBe('Playwright');
         expect(toolSegment.toolCall.status).toBe('completed');

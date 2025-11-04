@@ -30,11 +30,12 @@ export function parseLog(content: string): ParsedSession {
 export class CopilotLogParser {
   private messageIdCounter = 0;
   private segmentOrderCounter = 0;
+  private toolCallIdCounter = 0;
 
   parse(logText: string): ParsedSession {
     const messages: ChatMessage[] = [];
     const lines = logText.split('\n');
-    
+
     let currentMessage: Partial<ChatMessage> | null = null;
     let currentContent: string[] = [];
     let contentSegments: ContentSegment[] = [];
@@ -301,8 +302,10 @@ export class CopilotLogParser {
       messages,
       metadata: {
         totalMessages: messages.length,
-        toolCallCount: messages.reduce((acc, m) => 
-          acc + m.contentSegments.filter(s => s.type === 'tool_call').length, 0),
+        toolCallCount: messages.reduce(
+          (acc, m) => acc + m.contentSegments.filter((s) => s.type === 'tool_call').length,
+          0
+        ),
         fileCount: messages.reduce((acc, m) => acc + (m.fileReferences?.length || 0), 0),
       },
     };
@@ -319,167 +322,209 @@ export class CopilotLogParser {
     // Match "Starting: *Task Name* (1/5)" as todo tool call
     const startingMatch = line.match(/^Starting:\s+\*?(.+?)\*?\s+\((\d+\/\d+)\)/);
     if (startingMatch) {
-      return {
-        type: 'todo',
-        action: `Starting ${startingMatch[1]} ${startingMatch[2]}`,
-        status: 'completed',
-      };
+      return this.enhanceToolCall(
+        {
+          type: 'todo',
+          action: `Starting ${startingMatch[1]} ${startingMatch[2]}`,
+          status: 'completed',
+        },
+        line
+      );
     }
 
     // Multi-Replace invocation
     const multiReplaceMatch = line.match(/^Using\s+"Multi-Replace String in Files"/);
     if (multiReplaceMatch) {
-      return {
-        type: 'replace',
-        action: 'Multi-Replace String in Files',
-        status: 'completed',
-      };
+      return this.enhanceToolCall(
+        {
+          type: 'replace',
+          action: 'Multi-Replace String in Files',
+          status: 'completed',
+        },
+        line
+      );
     }
-    // Sometimes serialized logs may only contain the bare phrase
     if (line.trim() === 'Multi-Replace String in Files') {
-      return {
-        type: 'replace',
-        action: 'Multi-Replace String in Files',
-        status: 'completed',
-      };
+      return this.enhanceToolCall(
+        {
+          type: 'replace',
+          action: 'Multi-Replace String in Files',
+          status: 'completed',
+        },
+        line
+      );
     }
 
     // Single replace invocation (one file)
     const singleReplaceMatch = line.match(/^Using\s+"Replace String in File"/);
     if (singleReplaceMatch) {
-      return {
-        type: 'replace',
-        action: 'Replace String in File',
-        status: 'completed',
-      };
+      return this.enhanceToolCall(
+        {
+          type: 'replace',
+          action: 'Replace String in File',
+          status: 'completed',
+        },
+        line
+      );
     }
     if (line.trim() === 'Replace String in File') {
-      return {
-        type: 'replace',
-        action: 'Replace String in File',
-        status: 'completed',
-      };
+      return this.enhanceToolCall(
+        {
+          type: 'replace',
+          action: 'Replace String in File',
+          status: 'completed',
+        },
+        line
+      );
     }
 
     // Apply Patch invocation
     const applyPatchMatch = line.match(/^Using\s+"Apply Patch"/);
     if (applyPatchMatch) {
-      return {
-        type: 'patch',
-        action: 'Apply Patch',
-        status: 'completed',
-      };
+      return this.enhanceToolCall(
+        {
+          type: 'patch',
+          action: 'Apply Patch',
+          status: 'completed',
+        },
+        line
+      );
     }
     if (line.trim() === 'Apply Patch') {
-      return {
-        type: 'patch',
-        action: 'Apply Patch',
-        status: 'completed',
-      };
+      return this.enhanceToolCall(
+        {
+          type: 'patch',
+          action: 'Apply Patch',
+          status: 'completed',
+        },
+        line
+      );
     }
 
     // Test discovery and execution summary
     const discoveringTests = line.match(/^Discovering tests\.\.\.$/);
     if (discoveringTests) {
-      return {
-        type: 'test',
-        action: 'Discovering tests',
-        status: 'pending',
-      };
+      return this.enhanceToolCall(
+        {
+          type: 'test',
+          action: 'Discovering tests',
+          status: 'pending',
+        },
+        line
+      );
     }
-    const testSummary = line.match(/^(\d+)\/(\d+)\s+tests\s+passed\s+\((\d+)%(?:,\s*(\d+)\s+skipped)?\)/);
+    const testSummary = line.match(
+      /^(\d+)\/(\d+)\s+tests\s+passed\s+\((\d+)%(?:,\s*(\d+)\s+skipped)?\)/
+    );
     if (testSummary) {
       const passed = testSummary[1];
       const total = testSummary[2];
       const pct = testSummary[3];
       const skippedRaw = testSummary[4];
       const skipped = skippedRaw ? parseInt(skippedRaw, 10) : undefined;
-      return {
-        type: 'test',
-        action: 'Tests passed',
-        output: `${passed}/${total} (${pct}%${skipped !== undefined ? `, ${skipped} skipped` : ''})`,
-        status: 'completed',
-        ...(skipped !== undefined ? { skipped } : {}),
-      };
+      return this.enhanceToolCall(
+        {
+          type: 'test',
+          action: 'Tests passed',
+          output: `${passed}/${total} (${pct}%${skipped !== undefined ? `, ${skipped} skipped` : ''})`,
+          status: 'completed',
+          ...(skipped !== undefined ? { skipped } : {}),
+        },
+        line
+      );
     }
 
     // Simple Browser open action
     const simpleBrowserMatch = line.match(/^Opened Simple Browser at (https?:\/\/\S+)$/);
     if (simpleBrowserMatch) {
-      return {
-        type: 'navigate',
-        action: 'Opened Simple Browser',
-        input: simpleBrowserMatch[1],
-        status: 'completed',
-      };
+      return this.enhanceToolCall(
+        {
+          type: 'navigate',
+          action: 'Opened Simple Browser',
+          input: simpleBrowserMatch[1],
+          status: 'completed',
+        },
+        line
+      );
     }
 
     const ranMatch = line.match(/^Ran\s+(.+?)(?:\s*-\s*(.+))?$/);
     if (ranMatch) {
       const action = ranMatch[1].trim();
       const toolType = this.extractToolType(action);
-      return {
-        type: toolType,
-        action: action,
-        status: 'completed',
-      };
+      return this.enhanceToolCall(
+        {
+          type: toolType,
+          action: action,
+          status: 'completed',
+        },
+        line
+      );
     }
 
     // Match "Searched ..." pattern (both "Searched X, N results" and "Searched for files matching ...")
     const searchMatch = line.match(/^Searched\s+(.+?),\s*(\d+)\s*results?/);
     if (searchMatch) {
-      return {
-        type: 'search',
-        action: searchMatch[1],
-        output: `${searchMatch[2]} results`,
-        status: 'completed',
-      };
+      return this.enhanceToolCall(
+        {
+          type: 'search',
+          action: searchMatch[1],
+          output: `${searchMatch[2]} results`,
+          status: 'completed',
+        },
+        line
+      );
     }
 
     // Match "Searched for files matching ..." pattern
     const searchFilesMatch = line.match(/^Searched\s+(.+?)$/);
     if (searchFilesMatch && searchFilesMatch[1].includes('for files matching')) {
-      // If the line includes a trailing result phrase (no matches/results), extract it
-      // Example: Searched for files matching `**/Footer*`, no matches
-      // We trim the action to exclude the trailing ", no matches" part and set output accordingly.
-      const rawAction = searchFilesMatch[1];
-      const trailingResult = rawAction.match(/^(.*),\s*(no matches|no results)$/);
-      let action = rawAction;
+      const rawActionInner = searchFilesMatch[1];
+      const trailingResult = rawActionInner.match(/^(.*),\s*(no matches|no results)$/);
+      let actionInner = rawActionInner;
       let output: string | undefined;
       if (trailingResult) {
-        action = trailingResult[1].trim();
+        actionInner = trailingResult[1].trim();
         output = '0 results';
       }
-      return {
-        type: 'search',
-        action,
-        status: 'completed',
-        ...(output ? { output } : {}),
-      };
+      return this.enhanceToolCall(
+        {
+          type: 'search',
+          action: actionInner,
+          status: 'completed',
+          ...(output ? { output } : {}),
+        },
+        line
+      );
     }
 
     // Enhanced search patterns
     // Regex search with count: Searched for regex `pattern`, 6 results
     const regexSearchCount = line.match(/^Searched\s+for\s+regex\s+`([^`]+)`,\s*(\d+)\s*results?/);
     if (regexSearchCount) {
-      return {
-        type: 'search',
-        action: `regex ${regexSearchCount[1]}`,
-        output: `${regexSearchCount[2]} results`,
-        status: 'completed',
-      };
+      return this.enhanceToolCall(
+        {
+          type: 'search',
+          action: `regex ${regexSearchCount[1]}`,
+          output: `${regexSearchCount[2]} results`,
+          status: 'completed',
+        },
+        line
+      );
     }
 
     // Bare regex search (no count/no results) used in multi-search combined lines:
     // Example segment: "Searched for regex `search.*icon`"
     const regexSearchBare = line.match(/^Searched\s+for\s+regex\s+`([^`]+)`$/);
     if (regexSearchBare) {
-      return {
-        type: 'search',
-        // Keep the phrase "for regex" so tests asserting action contains it will pass
-        action: `for regex ${regexSearchBare[1]}`,
-        status: 'completed',
-      };
+      return this.enhanceToolCall(
+        {
+          type: 'search',
+          action: `for regex ${regexSearchBare[1]}`,
+          status: 'completed',
+        },
+        line
+      );
     }
 
     // Regex/text search with no results (unquoted pattern, may include path filter in parentheses)
@@ -492,12 +537,15 @@ export class CopilotLogParser {
     if (regexOrTextNoResults) {
       const kind = regexOrTextNoResults[1];
       const pattern = regexOrTextNoResults[2];
-      return {
-        type: 'search',
-        action: `${kind} ${pattern}`,
-        output: '0 results',
-        status: 'completed',
-      };
+      return this.enhanceToolCall(
+        {
+          type: 'search',
+          action: `${kind} ${pattern}`,
+          output: '0 results',
+          status: 'completed',
+        },
+        line
+      );
     }
 
     // Regex/file/glob search with no results/no matches
@@ -505,14 +553,16 @@ export class CopilotLogParser {
       /^Searched\s+(?:for\s+(?:regex|text)\s+)?`?([^`,]+?)`?(?:\s*|\s+for\s+files\s+matching\s+`?([^`]+)`?)?,\s*(no results|no matches)$/
     );
     if (searchNoResults) {
-      // Determine pattern from capture groups; first non-empty
       const pattern = searchNoResults[2] ? searchNoResults[2] : searchNoResults[1];
-      return {
-        type: 'search',
-        action: pattern,
-        output: '0 results',
-        status: 'completed',
-      };
+      return this.enhanceToolCall(
+        {
+          type: 'search',
+          action: pattern,
+          output: '0 results',
+          status: 'completed',
+        },
+        line
+      );
     }
 
     // Parentheses form: Searched (**/src/components/**), no results|3 results
@@ -522,22 +572,28 @@ export class CopilotLogParser {
     if (parenSearch) {
       const outcome = parenSearch[2];
       const count = parenSearch[3];
-      return {
-        type: 'search',
-        action: parenSearch[1],
-        output: outcome.startsWith('no') ? '0 results' : `${count} results`,
-        status: 'completed',
-      };
+      return this.enhanceToolCall(
+        {
+          type: 'search',
+          action: parenSearch[1],
+          output: outcome.startsWith('no') ? '0 results' : `${count} results`,
+          status: 'completed',
+        },
+        line
+      );
     }
 
     // Match "Got output for `Task Name` task"
     const gotOutputMatch = line.match(/^Got output for `(.+?)` task/);
     if (gotOutputMatch) {
-      return {
-        type: 'run',
-        action: gotOutputMatch[1],
-        status: 'completed',
-      };
+      return this.enhanceToolCall(
+        {
+          type: 'run',
+          action: gotOutputMatch[1],
+          status: 'completed',
+        },
+        line
+      );
     }
 
     // Don't create separate tool calls for "Completed with input:"
@@ -548,6 +604,32 @@ export class CopilotLogParser {
     }
 
     return null;
+  }
+
+  private enhanceToolCall(base: ToolCall, rawLine: string): ToolCall {
+    // Attach rawAction and normalized result count for search parity
+    const rawAction = rawLine.trim();
+    // Normalize action: remove leading "Ran " if present
+    if (base.action.startsWith('Ran ')) {
+      base.action = base.action.replace(/^Ran\s+/, '');
+    }
+    // Always assign a stable toolCallId
+    base.toolCallId = this.generateToolCallId();
+    base.rawAction = rawAction;
+    if (base.type === 'search') {
+      const source = base.output || rawAction;
+      const m = source.match(/(\d+)\s+results?/);
+      if (m) {
+        base.normalizedResultCount = parseInt(m[1], 10);
+      } else if (/\b(no results|no matches)\b/i.test(source) || base.output === '0 results') {
+        base.normalizedResultCount = 0;
+      }
+    }
+    return base;
+  }
+
+  private generateToolCallId(): string {
+    return `tc_${Date.now()}_${++this.toolCallIdCounter}`;
   }
 
   private extractToolType(action: string): ToolCallType {
@@ -623,9 +705,9 @@ export class CopilotLogParser {
         });
       }
     }
-    
+
     message.contentSegments = contentSegments;
-    
+
     if (contentSegments.length > 0 || message.fileReferences?.length) {
       messages.push(message as ChatMessage);
     }

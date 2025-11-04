@@ -736,6 +736,8 @@ git commit -m "feat: add evaluate tool call type"
 
 ### **Before Committing**
 
+Run via subagent:
+
 ```bash
 # 1. Type check
 npm run type-check
@@ -1358,6 +1360,34 @@ it('shows 🤖 icon for nested subagent tool calls and expands parent by default
 - Nesting clarifies causal relationship between parent action and delegated subagent work.
 - Indentation + icon avoids verbose textual prefixes that previously cluttered display.
 - Auto-expansion reduces friction—users immediately see delegated work context.
+
+### 🔧 Action Normalization & Search Result Parity
+
+To improve test robustness and cross-format (text vs JSON) comparisons, the parser introduces two metadata fields on every tool call:
+
+| Field | Purpose |
+|-------|---------|
+| `rawAction` | Original, unmodified past/invocation message (e.g. `Ran Navigate to a URL`, `Searched for regex \`pattern\`, 6 results`). |
+| `normalizedResultCount` | Numeric result count for search operations derived from either the tool output or `rawAction` (`no results`/`no matches` → 0). |
+
+Normalization Rules:
+1. `action` strips leading prefixes like `Ran ` or `Using "..."` for cleaner display.
+2. Read operations condense markdown link paths to filenames (e.g. `Read [](file:///path/Button.tsx)` → `Read Button.tsx`).
+3. If `toolId` does not map to `search` but `rawAction` begins with `Searched`, type is overridden to `search` for parity.
+4. Multi-search combined lines in text logs are split; each segment gets its own tool call with its own `rawAction`.
+5. Search calls without explicit numeric counts omit `normalizedResultCount` (undefined) while still providing `rawAction`.
+
+Testing Guidance:
+- Prefer asserting on `normalizedResultCount` rather than string-matching `output` phrases.
+- When `output` is undefined (common in JSON export search calls), fall back to `rawAction` for pattern verification.
+- For parity tests, treat differing `action` strings acceptable if `rawAction` conveys equivalent semantics.
+
+Future Considerations:
+- Optional strict mode: `parseLog(text, { strictParity: true })` to coerce identical `action` formatting across parsers.
+- Capture timing metrics per tool call for performance dashboards.
+- Aggregate search effectiveness (e.g. ratio of zero-result searches).
+
+Rationale: These fields decouple semantic assertions from presentation formatting, reducing brittle tests and enabling richer analytics.
 
 ---
 

@@ -31,25 +31,32 @@ describe('search & replace parsing', () => {
   });
 
   it('parses regex search with count', () => {
-    const log = 'GitHub Copilot: Search phase\nSearched for regex `View on GitHub|Footer`, 6 results';
+    const log =
+      'GitHub Copilot: Search phase\nSearched for regex `View on GitHub|Footer`, 6 results';
     const { messages } = parseLog(log);
-    const segs = messages[0].contentSegments.filter(s => s.type === 'tool_call');
+    const segs = messages[0].contentSegments.filter((s) => s.type === 'tool_call');
     expect(segs).toHaveLength(1);
     if (segs[0].type === 'tool_call') {
       expect(segs[0].toolCall.type).toBe('search');
       expect(segs[0].toolCall.output).toBe('6 results');
       expect(segs[0].toolCall.action).toContain('regex');
+      // New parity fields
+      expect(segs[0].toolCall.normalizedResultCount).toBe(6);
+      expect(segs[0].toolCall.rawAction).toContain('Searched for regex');
     }
   });
 
   it('parses search with no matches', () => {
-    const log = 'GitHub Copilot: Search phase\nSearched for files matching `**/Footer*`, no matches';
+    const log =
+      'GitHub Copilot: Search phase\nSearched for files matching `**/Footer*`, no matches';
     const { messages } = parseLog(log);
-    const segs = messages[0].contentSegments.filter(s => s.type === 'tool_call');
+    const segs = messages[0].contentSegments.filter((s) => s.type === 'tool_call');
     expect(segs).toHaveLength(1);
     if (segs[0].type === 'tool_call') {
       expect(segs[0].toolCall.type).toBe('search');
       expect(segs[0].toolCall.output).toBe('0 results');
+      expect(segs[0].toolCall.normalizedResultCount).toBe(0);
+      expect(segs[0].toolCall.rawAction).toContain('Searched for files matching');
     }
   });
 
@@ -64,11 +71,19 @@ describe('search & replace parsing', () => {
     if (first.type === 'tool_call') {
       expect(first.toolCall.type).toBe('search');
       expect(first.toolCall.action).toContain('for regex');
+      // Multi-search first segment may not have explicit count -> undefined or >=0
+      expect(
+        first.toolCall.normalizedResultCount === undefined ||
+          typeof first.toolCall.normalizedResultCount === 'number'
+      ).toBe(true);
+      expect(first.toolCall.rawAction).toContain('Searched for regex');
     }
     if (second.type === 'tool_call') {
       expect(second.toolCall.type).toBe('search');
       expect(second.toolCall.output).toBe('0 results');
       expect(second.toolCall.action).toContain('src/components');
+      expect(second.toolCall.normalizedResultCount).toBe(0);
+      expect(second.toolCall.rawAction).toContain('Searched (');
     }
   });
 

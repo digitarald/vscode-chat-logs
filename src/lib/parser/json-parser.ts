@@ -92,10 +92,25 @@ export class JsonLogParser {
 
         // Assistant message with response items
         if (request.response && request.response.length > 0) {
+          // Extract toolCallResults and toolCallRounds from result.metadata
+          const requestData = request as unknown as {
+            result?: {
+              metadata?: {
+                toolCallResults?: Record<string, { content?: Array<{ value?: string }> }>;
+                toolCallRounds?: Array<{ toolCalls?: Array<{ id?: string; arguments?: string }> }>;
+              };
+            };
+          };
+
+          const toolCallResults = requestData.result?.metadata?.toolCallResults;
+          const toolCallRounds = requestData.result?.metadata?.toolCallRounds;
+
           const assistantMessage = this.parseResponse(
             request.requestId,
             request.response,
-            messageOrder
+            messageOrder,
+            toolCallResults,
+            toolCallRounds
           );
           if (assistantMessage) {
             messages.push(assistantMessage);
@@ -118,9 +133,9 @@ export class JsonLogParser {
     }
   }
 
-  private parseVariableData(
-    variableData?: { variables: JsonVariable[] }
-  ): VariableData[] | undefined {
+  private parseVariableData(variableData?: {
+    variables: JsonVariable[];
+  }): VariableData[] | undefined {
     if (!variableData?.variables) return undefined;
 
     return variableData.variables.map((v) => ({
@@ -134,7 +149,9 @@ export class JsonLogParser {
   private parseResponse(
     requestId: string,
     responseItems: JsonResponseItem[],
-    startOrder: number
+    startOrder: number,
+    toolCallResults?: Record<string, { content?: Array<{ value?: string }> }>,
+    toolCallRounds?: Array<{ toolCalls?: Array<{ id?: string; arguments?: string }> }>
   ): ChatMessage | null {
     const contentSegments: ContentSegment[] = [];
     let order = startOrder;
@@ -185,7 +202,7 @@ export class JsonLogParser {
         flushAccumulatedText();
         // Tool call - parse from response item structure
         const toolCallData = item as Record<string, unknown>;
-        const toolCall = this.parseToolCallFromItem(toolCallData);
+        const toolCall = this.parseToolCallFromItem(toolCallData, toolCallResults, toolCallRounds);
         if (toolCall) {
           // For replace string tools (both multi and single), collect following textEditGroup items
           if (
@@ -227,7 +244,11 @@ export class JsonLogParser {
     };
   }
 
-  private parseToolCallFromItem(item: Record<string, unknown>): ToolCall | null {
+  private parseToolCallFromItem(
+    item: Record<string, unknown>,
+    toolCallResults?: Record<string, { content?: Array<{ value?: string }> }>,
+    toolCallRounds?: Array<{ toolCalls?: Array<{ id?: string; arguments?: string }> }>
+  ): ToolCall | null {
     const toolId = item.toolId as string;
     const toolCallId = item.toolCallId as string;
     const invocationMsg = item.invocationMessage as string | { value: string } | undefined;
@@ -240,12 +261,52 @@ export class JsonLogParser {
       | undefined;
     const fromSubAgent = item.fromSubAgent === true;
 
-    let action = this.extractMessage(pastMsg || invocationMsg);
-    const type = this.mapToolIdToType(toolId);
+    const rawAction = this.extractMessage(pastMsg || invocationMsg);
+    // Normalized action removes leading "Ran " prefix if present
+    let action = rawAction.replace(/^Ran\s+/, '');
+    let type = this.mapToolIdToType(toolId);
 
     // Extract input/output
     let input: string | undefined;
     let output: string | undefined;
+
+    // For subagent calls, extract input from toolCallRounds and output from toolCallResults
+    if (type === 'subagent' && toolCallRounds) {
+      // Find the matching tool call in toolCallRounds to get the input
+      // Match by tool name "runSubagent" since toolCallId formats don't match
+      for (const round of toolCallRounds) {
+        if (round.toolCalls) {
+          for (const call of round.toolCalls) {
+            const callData = call as {
+              id?: string;
+              name?: string;
+              arguments?: string;
+            };
+            // Match by tool name for subagent calls
+            if (callData.name === 'runSubagent') {
+              if (callData.arguments) {
+                try {
+                  const args = JSON.parse(callData.arguments);
+                  input = args.prompt || callData.arguments;
+                } catch {
+                  input = callData.arguments;
+                }
+              }
+
+              // Get output from toolCallResults using this call's ID
+              if (toolCallResults && callData.id) {
+                const result = toolCallResults[callData.id];
+                if (result?.content && result.content.length > 0) {
+                  output = result.content[0].value;
+                }
+              }
+              break;
+            }
+          }
+        }
+        if (input) break;
+      }
+    }
     let screenshot: string | undefined;
     let consoleOutput: string[] | undefined;
     let pageSnapshot: string | undefined;
@@ -296,9 +357,25 @@ export class JsonLogParser {
       }
     }
 
+    // If toolId mapping didn't classify search but action starts with Searched, override to search
+    if (type !== 'search' && /^Searched\b/.test(rawAction)) {
+      type = 'search';
+    }
+
+    // Derive normalized result count (search parity)
+    let normalizedResultCount: number | undefined;
+    const countSource = output || rawAction;
+    const countMatch = countSource && countSource.match(/(\d+)\s+results?/);
+    if (countMatch) {
+      normalizedResultCount = parseInt(countMatch[1], 10);
+    } else if (/\b(no results|no matches)\b/i.test(countSource || '') || output === '0 results') {
+      normalizedResultCount = 0;
+    }
+
     const toolCall: ToolCall = {
       type,
       action,
+      rawAction,
       status: item.isComplete ? 'completed' : 'pending',
       toolCallId,
       input,
@@ -306,6 +383,7 @@ export class JsonLogParser {
       screenshot,
       consoleOutput,
       pageSnapshot,
+      ...(normalizedResultCount !== undefined ? { normalizedResultCount } : {}),
     };
 
     // Mark subagent orchestrator root if applicable (runSubagent tool id)
@@ -327,7 +405,7 @@ export class JsonLogParser {
 
   private extractMessage(msg: string | { value: string } | undefined): string {
     if (!msg) return 'Unknown action';
-    let text = typeof msg === 'string' ? msg : (msg.value || 'Unknown action');
+    let text = typeof msg === 'string' ? msg : msg.value || 'Unknown action';
     // Remove "Using" prefix and trailing quotes
     text = text.replace(/^Using\s*[""'](.+?)[""']\s*\.?$/, '$1');
     return text;
@@ -353,10 +431,10 @@ export class JsonLogParser {
 
   private collectFileEdits(responseItems: JsonResponseItem[], startIndex: number): FileEdit[] {
     const fileEdits: FileEdit[] = [];
-    
+
     for (let i = startIndex; i < responseItems.length; i++) {
       const item = responseItems[i] as Record<string, unknown>;
-      
+
       // Stop when we hit meaningful text content (not just code block markers)
       if (item.value && typeof item.value === 'string') {
         const trimmed = item.value.trim();
@@ -365,34 +443,46 @@ export class JsonLogParser {
           break;
         }
       }
-      
+
       // Collect textEditGroup items
       if (item.kind === 'textEditGroup' && item.uri && item.edits) {
         const filePath = this.extractFilePath(item.uri);
-        const edits = item.edits as Array<Array<{ text?: string; range?: { startLineNumber?: number; startColumn?: number; endLineNumber?: number; endColumn?: number } }>>;
-        
+        const edits = item.edits as Array<
+          Array<{
+            text?: string;
+            range?: {
+              startLineNumber?: number;
+              startColumn?: number;
+              endLineNumber?: number;
+              endColumn?: number;
+            };
+          }>
+        >;
+
         // Each edit in the group is an array containing a single object with {text, range}
         for (const editArray of edits) {
           if (Array.isArray(editArray) && editArray.length > 0) {
             const editData = editArray[0];
-            
+
             if (editData && typeof editData === 'object') {
               fileEdits.push({
                 filePath,
                 text: editData.text || '',
-                range: editData.range ? {
-                  startLine: editData.range.startLineNumber || 0,
-                  startColumn: editData.range.startColumn || 0,
-                  endLine: editData.range.endLineNumber || 0,
-                  endColumn: editData.range.endColumn || 0,
-                } : undefined,
+                range: editData.range
+                  ? {
+                      startLine: editData.range.startLineNumber || 0,
+                      startColumn: editData.range.startColumn || 0,
+                      endLine: editData.range.endLineNumber || 0,
+                      endColumn: editData.range.endColumn || 0,
+                    }
+                  : undefined,
               });
             }
           }
         }
       }
     }
-    
+
     return fileEdits;
   }
 
@@ -412,9 +502,7 @@ export class JsonLogParser {
 
   private countToolCalls(messages: ChatMessage[]): number {
     return messages.reduce(
-      (count, msg) =>
-        count +
-        msg.contentSegments.filter((seg) => seg.type === 'tool_call').length,
+      (count, msg) => count + msg.contentSegments.filter((seg) => seg.type === 'tool_call').length,
       0
     );
   }
