@@ -25,7 +25,6 @@ function buildMessage(): ChatMessage {
     contentSegments: [
       { type: 'tool_call', toolCall, order: 0 }
     ],
-    codeBlocks: [],
   };
 }
 
