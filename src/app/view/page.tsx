@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { gistFetcher } from '@/lib/gist-fetcher';
+import { selectLogFile, deriveDisplayTitle } from '@/lib/select-log-file';
 import { parseLog } from '@/lib/parser';
 import type { ParsedSession } from '@/lib/parser/types';
 import ChatMessageComponent from '@/components/ChatMessage';
@@ -14,6 +15,7 @@ function ViewerContent() {
   const gistId = searchParams.get('gistId');
   
   const [session, setSession] = useState<ParsedSession | null>(null);
+  const [displayTitle, setDisplayTitle] = useState<string>('VS Code Chat Log');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const hasLoadedRef = useRef(false);
@@ -67,27 +69,26 @@ function ViewerContent() {
         }
         
         const gist = await gistFetcher.fetchGist(gistId);
-        
-        // Find the log file (first .log, .txt, or .json file, or first file)
-        const logFile = Object.values(gist.files).find(
-          f => f.filename.endsWith('.log') || 
-               f.filename.endsWith('.txt') || 
-               f.filename.endsWith('.json')
-        ) || Object.values(gist.files)[0];
 
-        if (!logFile) {
+        // Select best log file using utility (prioritized extensions & size)
+        const selected = selectLogFile(gist.files);
+        if (!selected) {
           throw new Error('No log file found in Gist');
         }
 
-        const parsed = parseLog(logFile.content);
+        const parsed = parseLog(selected.content);
         setSession(parsed);
-        
-        // Add to history after successful load
+
+        // Title precedence: filename -> description -> gist id
+        const title = deriveDisplayTitle(gist, selected);
+        setDisplayTitle(title);
+
+        // Add to history after successful load with derived title
         addToHistory({
           id: gistId,
-          type: 'gist',
-          gistId: gistId,
-          title: gist.description || `Gist ${gistId.substring(0, 8)}...`,
+            type: 'gist',
+            gistId: gistId,
+            title,
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load content');
@@ -175,7 +176,7 @@ function ViewerContent() {
               <div className="flex items-center gap-2">
                 <h1 className="text-lg font-semibold flex items-center gap-2" style={{ color: '#cccccc' }}>
                   <span>💬</span>
-                  VS Code Chat Log
+                  {displayTitle}
                 </h1>
                 {gistId && (
                   <a
