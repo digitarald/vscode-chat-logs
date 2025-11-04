@@ -234,7 +234,6 @@ git commit -m "fix: normalize search count"
 ```
 
 Keep changes tight, tested, and traceable.
-
 ---
 
 ## 15. Final Reminder
