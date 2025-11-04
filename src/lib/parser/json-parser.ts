@@ -160,14 +160,22 @@ export class JsonLogParser {
     let lastTopLevelToolCall: ToolCall | null = null;
 
     const flushAccumulatedText = () => {
-      if (accumulatedText) {
-        // Split accumulated text into text/code_block segments preserving order
-        const split = this.splitTextIntoSegments(accumulatedText);
-        for (const seg of split) {
-          contentSegments.push({ ...seg, order: order++ });
+      if (!accumulatedText) return;
+      const split = this.splitTextIntoSegments(accumulatedText);
+      for (const seg of split) {
+        if (seg.type === 'text') {
+          contentSegments.push({ type: 'text', content: seg.content, order: order++ });
+        } else if (seg.type === 'code_block') {
+          contentSegments.push({
+            type: 'code_block',
+            language: seg.language,
+            code: seg.code,
+            ...(seg.diff ? { diff: seg.diff } : {}),
+            order: order++,
+          });
         }
-        accumulatedText = '';
       }
+      accumulatedText = '';
     };
 
     for (let i = 0; i < responseItems.length; i++) {
@@ -245,8 +253,13 @@ export class JsonLogParser {
   }
 
   // Split a block of text into interleaved text and code_block segments based on fenced code blocks
-  private splitTextIntoSegments(text: string): Array<Omit<ContentSegment, 'order'>> {
-    const segments: Array<Omit<ContentSegment, 'order'>> = [];
+  // Internal split segment type excludes tool_call (only text and code_block produced here)
+  private splitTextIntoSegments(
+    text: string
+  ): Array<{ type: 'text'; content: string } | { type: 'code_block'; language: string; code: string; diff?: boolean }> {
+    const segments: Array<
+      { type: 'text'; content: string } | { type: 'code_block'; language: string; code: string; diff?: boolean }
+    > = [];
     const fenceRegex = /```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g;
     let lastIndex = 0;
     let match: RegExpExecArray | null;
@@ -254,7 +267,7 @@ export class JsonLogParser {
     while ((match = fenceRegex.exec(text)) !== null) {
       const preceding = text.slice(lastIndex, match.index).trim();
       if (preceding) {
-        segments.push({ type: 'text', content: preceding } as Omit<ContentSegment, 'order'>);
+        segments.push({ type: 'text', content: preceding });
       }
       const language = match[1] || 'plaintext';
       const code = match[2];
@@ -262,18 +275,18 @@ export class JsonLogParser {
         type: 'code_block',
         language,
         code,
-      } as Omit<ContentSegment, 'order'>);
+      });
       lastIndex = fenceRegex.lastIndex;
     }
 
     const trailing = text.slice(lastIndex).trim();
     if (trailing) {
-      segments.push({ type: 'text', content: trailing } as Omit<ContentSegment, 'order'>);
+      segments.push({ type: 'text', content: trailing });
     }
 
     // If no fences matched, return original as single text segment
     if (segments.length === 0) {
-      return [{ type: 'text', content: text } as Omit<ContentSegment, 'order'>];
+      return [{ type: 'text', content: text }];
     }
     return segments;
   }
