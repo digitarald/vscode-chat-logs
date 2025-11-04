@@ -96,21 +96,37 @@ export class CopilotLogParser {
         }
       }
 
-      // Detect code block boundaries
-      if (line.trim().startsWith('```')) {
+      // Detect code block boundaries. Flush accumulated text before opening fence so ordering is preserved.
+      // Only treat lines starting with exactly three backticks as fences to ignore outer quadruple fences used for whole file blocks
+      if (line.trim().startsWith('```') && !line.trim().startsWith('````')) {
         if (!inCodeBlock) {
+          // Opening fence: flush any pending text content to a text segment
+          if (currentContent.length > 0) {
+            const textContent = currentContent.join('\n').trim();
+            if (textContent) {
+              contentSegments.push({
+                type: 'text',
+                content: textContent,
+                order: this.segmentOrderCounter++,
+              });
+            }
+            currentContent = [];
+          }
           inCodeBlock = true;
           const language = line.trim().slice(3).trim() || 'plaintext';
           currentCodeBlock = { language, code: '' };
           codeLines = [];
         } else {
+          // Closing fence: emit code_block content segment inline
           inCodeBlock = false;
           if (currentCodeBlock) {
             currentCodeBlock.code = codeLines.join('\n');
-            if (currentMessage) {
-              currentMessage.codeBlocks = currentMessage.codeBlocks || [];
-              currentMessage.codeBlocks.push(currentCodeBlock as CodeBlock);
-            }
+            contentSegments.push({
+              type: 'code_block',
+              language: currentCodeBlock.language || 'plaintext',
+              code: currentCodeBlock.code || '',
+              order: this.segmentOrderCounter++,
+            });
           }
           currentCodeBlock = null;
         }
@@ -143,7 +159,9 @@ export class CopilotLogParser {
           // But if we hit an empty line or new section, stop
           if (
             line.trim() === '' ||
-            line.match(new RegExp(`^(${userPrefixPattern}|GitHub Copilot:|Ran |Searched |Read |Got output)`))
+            line.match(
+              new RegExp(`^(${userPrefixPattern}|GitHub Copilot:|Ran |Searched |Read |Got output)`)
+            )
           ) {
             // Malformed JSON, just store what we have
             if (lastToolCall) {
@@ -705,9 +723,8 @@ export class CopilotLogParser {
     contentSegments: ContentSegment[],
     messages: ChatMessage[]
   ) {
-    // Add any remaining content as final text segment
+    // Add any remaining content as final text segment (ignore if only whitespace)
     if (content.length > 0) {
-      // Join all lines (including empty ones) to preserve formatting
       const textContent = content.join('\n').trim();
       if (textContent) {
         contentSegments.push({

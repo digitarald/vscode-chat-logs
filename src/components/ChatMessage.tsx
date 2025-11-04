@@ -527,58 +527,84 @@ export default function ChatMessageComponent({ message }: { message: ChatMessage
   const isUser = message.role === 'user';
   
   return (
-    <div 
+    <div
       className="flex gap-3 py-4 px-4"
       style={{ backgroundColor: isUser ? '#252526' : '#1e1e1e' }}
       data-testid="chat-message"
     >
-      <div 
+      <div
         className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold"
         style={{ backgroundColor: isUser ? '#007acc' : '#68217a', color: '#ffffff' }}
       >
         {isUser ? 'U' : 'AI'}
       </div>
-      
+
       <div className="flex-1 min-w-0">
         <div className="text-sm font-semibold mb-2" style={{ color: '#cccccc' }}>
           {isUser ? 'digitarald' : 'GitHub Copilot'}
         </div>
-        
+
         {/* Render interleaved content segments */}
         {message.contentSegments && message.contentSegments.length > 0 && (
           <div>
             {message.contentSegments.map((segment, idx) => {
               if (segment.type === 'text') {
                 // Add margin if previous segment was a tool call
-                const prevIsToolCall = idx > 0 && message.contentSegments[idx - 1]?.type === 'tool_call';
-                
+                const prevIsToolCall =
+                  idx > 0 && message.contentSegments[idx - 1]?.type === 'tool_call';
+
                 // User messages: preserve whitespace with <pre>
                 if (isUser) {
                   return (
-                    <pre key={idx} className={`text-sm leading-normal whitespace-pre-wrap ${prevIsToolCall ? 'mt-3' : ''}`} style={{ fontFamily: 'inherit', color: '#cccccc' }}>
+                    <pre
+                      key={idx}
+                      className={`text-sm leading-normal whitespace-pre-wrap ${prevIsToolCall ? 'mt-3' : ''}`}
+                      style={{ fontFamily: 'inherit', color: '#cccccc' }}
+                    >
                       {segment.content}
                     </pre>
                   );
                 }
-                
+
                 // Assistant messages: render markdown
                 return (
-                  <div key={idx} className={`text-sm leading-normal ${prevIsToolCall ? 'mt-3' : ''}`} style={{ color: '#cccccc' }}>
-                    <ReactMarkdown 
+                  <div
+                    key={idx}
+                    className={`text-sm leading-normal ${prevIsToolCall ? 'mt-3' : ''}`}
+                    style={{ color: '#cccccc' }}
+                  >
+                    <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       components={{
                         // Style markdown elements to match VS Code theme
-                        p: ({ children }: { children?: React.ReactNode }) => <p className="mb-3">{children}</p>,
+                        p: ({ children }: { children?: React.ReactNode }) => (
+                          <p className="mb-3">{children}</p>
+                        ),
                         a: ({ href, children }: { href?: string; children?: React.ReactNode }) => (
-                          <a href={href} className="underline" style={{ color: '#4fc3f7' }} target="_blank" rel="noopener noreferrer"
-                            onMouseEnter={(e) => e.currentTarget.style.color = '#1a8dd8'}
-                            onMouseLeave={(e) => e.currentTarget.style.color = '#4fc3f7'}>
+                          <a
+                            href={href}
+                            className="underline"
+                            style={{ color: '#4fc3f7' }}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onMouseEnter={(e) => (e.currentTarget.style.color = '#1a8dd8')}
+                            onMouseLeave={(e) => (e.currentTarget.style.color = '#4fc3f7')}
+                          >
                             {children}
                           </a>
                         ),
-                        code: ({ inline, children }: { inline?: boolean; children?: React.ReactNode }) => 
+                        code: ({
+                          inline,
+                          children,
+                        }: {
+                          inline?: boolean;
+                          children?: React.ReactNode;
+                        }) =>
                           inline ? (
-                            <code className="px-1.5 py-0.5 rounded font-mono text-xs" style={{ backgroundColor: '#2d2d30', color: '#d7ba7d' }}>
+                            <code
+                              className="px-1.5 py-0.5 rounded font-mono text-xs"
+                              style={{ backgroundColor: '#2d2d30', color: '#d7ba7d' }}
+                            >
                               {children}
                             </code>
                           ) : (
@@ -587,33 +613,88 @@ export default function ChatMessageComponent({ message }: { message: ChatMessage
                             </code>
                           ),
                         pre: ({ children }: { children?: React.ReactNode }) => (
-                          <pre className="rounded overflow-x-auto my-1" style={{ padding: '8px', backgroundColor: '#252526', border: '1px solid #3e3e42' }}>
+                          <pre
+                            className="rounded overflow-x-auto my-1"
+                            style={{
+                              padding: '8px',
+                              backgroundColor: '#252526',
+                              border: '1px solid #3e3e42',
+                            }}
+                          >
                             {children}
                           </pre>
                         ),
-                        ul: ({ children }: { children?: React.ReactNode }) => <ul className="list-disc ml-4 mb-1 space-y-0.5">{children}</ul>,
-                        ol: ({ children }: { children?: React.ReactNode }) => <ol className="list-decimal ml-4 mb-1 space-y-0.5">{children}</ol>,
-                        li: ({ children }: { children?: React.ReactNode }) => <li style={{ color: '#cccccc' }}>{children}</li>,
+                        ul: ({ children }: { children?: React.ReactNode }) => (
+                          <ul className="list-disc ml-4 mb-1 space-y-0.5">{children}</ul>
+                        ),
+                        ol: ({ children }: { children?: React.ReactNode }) => (
+                          <ol className="list-decimal ml-4 mb-1 space-y-0.5">{children}</ol>
+                        ),
+                        li: ({ children }: { children?: React.ReactNode }) => (
+                          <li style={{ color: '#cccccc' }}>{children}</li>
+                        ),
                         blockquote: ({ children }: { children?: React.ReactNode }) => (
-                          <blockquote className="border-l-2 pl-3 py-0.5 italic my-1" style={{ borderColor: '#007acc', color: '#969696', backgroundColor: 'rgba(37, 37, 38, 0.3)' }}>
+                          <blockquote
+                            className="border-l-2 pl-3 py-0.5 italic my-1"
+                            style={{
+                              borderColor: '#007acc',
+                              color: '#969696',
+                              backgroundColor: 'rgba(37, 37, 38, 0.3)',
+                            }}
+                          >
                             {children}
                           </blockquote>
                         ),
-                        h1: ({ children }) => <h1 className="text-xl font-bold mb-1 mt-2 first:mt-0" style={{ color: '#cccccc' }}>{children}</h1>,
-                        h2: ({ children }) => <h2 className="text-lg font-bold mb-1 mt-2 first:mt-0" style={{ color: '#cccccc' }}>{children}</h2>,
-                        h3: ({ children }) => <h3 className="text-base font-bold mb-1 mt-2 first:mt-0" style={{ color: '#cccccc' }}>{children}</h3>,
-                        strong: ({ children }) => <strong className="font-semibold" style={{ color: '#cccccc' }}>{children}</strong>,
+                        h1: ({ children }) => (
+                          <h1
+                            className="text-xl font-bold mb-1 mt-2 first:mt-0"
+                            style={{ color: '#cccccc' }}
+                          >
+                            {children}
+                          </h1>
+                        ),
+                        h2: ({ children }) => (
+                          <h2
+                            className="text-lg font-bold mb-1 mt-2 first:mt-0"
+                            style={{ color: '#cccccc' }}
+                          >
+                            {children}
+                          </h2>
+                        ),
+                        h3: ({ children }) => (
+                          <h3
+                            className="text-base font-bold mb-1 mt-2 first:mt-0"
+                            style={{ color: '#cccccc' }}
+                          >
+                            {children}
+                          </h3>
+                        ),
+                        strong: ({ children }) => (
+                          <strong className="font-semibold" style={{ color: '#cccccc' }}>
+                            {children}
+                          </strong>
+                        ),
                         em: ({ children }) => <em className="italic">{children}</em>,
                         hr: () => <hr className="my-2" style={{ borderColor: '#3e3e42' }} />,
                         table: ({ children }) => (
                           <div className="my-1 overflow-x-auto">
-                            <table className="border-collapse w-full" style={{ border: '1px solid #3e3e42' }}>
+                            <table
+                              className="border-collapse w-full"
+                              style={{ border: '1px solid #3e3e42' }}
+                            >
                               {children}
                             </table>
                           </div>
                         ),
                         th: ({ children }) => (
-                          <th className="px-3 py-2 text-left font-semibold" style={{ border: '1px solid #3e3e42', backgroundColor: '#252526', color: '#cccccc' }}>
+                          <th
+                            className="px-3 py-2 text-left font-semibold"
+                            style={{
+                              border: '1px solid #3e3e42',
+                              backgroundColor: '#252526',
+                              color: '#cccccc',
+                            }}
+                          >
                             {children}
                           </th>
                         ),
@@ -636,24 +717,42 @@ export default function ChatMessageComponent({ message }: { message: ChatMessage
                     <ToolCallItem toolCall={segment.toolCall} />
                   </div>
                 );
+              } else if (segment.type === 'code_block') {
+                // Margin if previous segment was text or tool call
+                const prevType = idx > 0 ? message.contentSegments[idx - 1]?.type : null;
+                const addMargin =
+                  prevType === 'text' || prevType === 'tool_call' || prevType === 'code_block';
+                return (
+                  <div key={idx} className={addMargin ? 'mt-2' : ''}>
+                    <div
+                      className="rounded overflow-hidden"
+                      style={{ border: '1px solid #3e3e42' }}
+                    >
+                      <div
+                        className="text-xs font-mono"
+                        style={{
+                          padding: '4px 12px',
+                          backgroundColor: '#252526',
+                          color: '#969696',
+                          borderBottom: '1px solid #3e3e42',
+                        }}
+                      >
+                        {segment.language}
+                      </div>
+                      <pre
+                        className="overflow-x-auto"
+                        style={{ padding: '8px', backgroundColor: '#1e1e1e' }}
+                      >
+                        <code className="text-xs font-mono" style={{ color: '#cccccc' }}>
+                          {segment.code}
+                        </code>
+                      </pre>
+                    </div>
+                  </div>
+                );
               }
               return null;
             })}
-          </div>
-        )}
-        
-        {message.codeBlocks && message.codeBlocks.length > 0 && (
-          <div className="mt-1 space-y-1">
-            {message.codeBlocks.map((block, idx) => (
-              <div key={idx} className="rounded overflow-hidden" style={{ border: '1px solid #3e3e42' }}>
-                <div className="text-xs font-mono" style={{ padding: '4px 12px', backgroundColor: '#252526', color: '#969696', borderBottom: '1px solid #3e3e42' }}>
-                  {block.language}
-                </div>
-                <pre className="overflow-x-auto" style={{ padding: '8px', backgroundColor: '#1e1e1e' }}>
-                  <code className="text-xs font-mono" style={{ color: '#cccccc' }}>{block.code}</code>
-                </pre>
-              </div>
-            ))}
           </div>
         )}
       </div>

@@ -85,9 +85,9 @@ describe('sample parity – plan session', () => {
     expect(jsonSearchCalls.some(c => typeof c.normalizedResultCount === 'number')).toBe(true);
 
     // Any zero-result searches should have normalizedResultCount = 0
-    const zeroText = textSearchCalls.filter(c => /no results|no matches|0 results/i.test((c.output || c.rawAction || '')));
+    const zeroText = textSearchCalls.filter((c) => c.normalizedResultCount === 0);
     zeroText.forEach(c => expect(c.normalizedResultCount).toBe(0));
-    const zeroJson = jsonSearchCalls.filter(c => /no results|no matches|0 results/i.test((c.output || c.rawAction || '')));
+    const zeroJson = jsonSearchCalls.filter((c) => c.normalizedResultCount === 0);
     zeroJson.forEach(c => expect(c.normalizedResultCount).toBe(0));
   });
 

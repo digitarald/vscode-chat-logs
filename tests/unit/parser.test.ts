@@ -74,19 +74,23 @@ Read [](file:///Users/digitarald/src/cart-context.tsx#200-240)`;
     expect(message.fileReferences![0].lines).toBe('200-240');
   });
 
-  it('should parse code blocks', () => {
+  it('should parse code blocks inline as code_block segments', () => {
     const log = `GitHub Copilot: Here's the fix
 
 \`\`\`typescript
 const x = 10;
 \`\`\``;
-    
+
     const result = parseLog(log);
     const message = result.messages[0];
-    
-    expect(message.codeBlocks).toBeDefined();
-    expect(message.codeBlocks![0].language).toBe('typescript');
-    expect(message.codeBlocks![0].code).toContain('const x = 10');
+
+    const codeBlockSegments = message.contentSegments.filter((s) => s.type === 'code_block');
+    expect(codeBlockSegments.length).toBe(1);
+    const seg = codeBlockSegments[0];
+    if (seg.type === 'code_block') {
+      expect(seg.language).toBe('typescript');
+      expect(seg.code).toContain('const x = 10');
+    }
   });
 
   it('should parse task statuses', () => {

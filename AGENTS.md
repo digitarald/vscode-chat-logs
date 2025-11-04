@@ -33,1381 +33,258 @@ A static Next.js web application that renders GitHub Copilot VS Code chat logs i
 - **Styling:** Tailwind CSS
 - **Markdown:** react-markdown + remark-gfm (GitHub-flavored markdown)
 - **Testing:** Vitest (unit tests only)
-- **Deployment:** GitHub Pages via GitHub Actions
-
-### **Key Constraints**
-- ✅ Must work as static site (no server-side code)
-- ✅ Must support GitHub Gist API rate limits (60 requests/hour unauthenticated)
-- ✅ Must implement robust error handling with retries and timeouts
-- ✅ Must maintain library-first architecture
-- ✅ All code must pass type-check, lint, and tests (zero `any` types)
-- ✅ Must maintain accessibility standards (ARIA labels, semantic HTML)
-- ✅ Must maintain VS Code aesthetic consistency
-
----
-
-## 🏗️ Architecture & Design Principles
-
-### **1. Library-First Architecture**
-
-**CRITICAL:** The parser logic is completely decoupled from UI.
-
-```
-src/lib/parser/     ← Pure TypeScript, zero UI dependencies
-    ↓
-src/lib/            ← API/utility layer
-    ↓
-src/components/     ← React UI components
-    ↓
-src/app/            ← Next.js pages
-```
-
-**Rules:**
-- ❌ Parser must NEVER import React, Next.js, or UI components
-- ✅ Parser should be testable without any UI
-- ✅ All parser functions should be pure (no side effects)
-- ✅ Parser types should be exported from `types.ts`
-
-### **2. Testing Philosophy**
-
-**Unit Tests (Focus on comprehensive coverage):**
-- Test parser logic exhaustively
-- Test edge cases and error handling
-- Fast, isolated, no external dependencies
-- Test markdown rendering and content segment interleaving
-- Aim for >80% code coverage
-
-**Note:** E2E tests were removed in favor of comprehensive unit tests. The parser's interleaved content segments architecture makes unit testing sufficient for verifying correct behavior.
-
-**Anti-pattern:**
-```typescript
-// ❌ Don't test implementation details
-expect(component.state.isOpen).toBe(true);
-
-// ✅ Test data structure and parsing logic
-expect(result.messages[0].contentSegments[0].type).toBe('text');
-```
-
-### **3. Static Export Constraints**
-
-This app uses `output: 'export'` which means:
-- ❌ No API routes (use client-side fetch)
-- ❌ No server components with dynamic data
-- ❌ No getServerSideProps
-- ✅ All data fetching happens client-side
-- ✅ Use `'use client'` for interactive components
-
-### **4. Design System**
-
-**Colors (VS Code Dark Theme):**
-```typescript
-// Background layers
-bg-gray-900   // Main background
-bg-gray-850   // User messages
-bg-gray-800   // Cards/panels
-bg-gray-700   // Borders
-
-// Accent colors
-purple-600    // Primary actions
-blue-700      // Code/file references
-green-500     // Success/completed
-yellow-400    // In-progress
-red-700       // Errors
-```
-
-**Typography:**
-- Base: `text-sm` (14px)
-- Headers: `text-lg` (18px)
-- Code: `font-mono`
-
-**Spacing:**
-- Cards: `p-4` (16px)
-- Gaps: `gap-3` (12px)
-- Sections: `py-4` (16px vertical)
-
----
-
-## 📏 Code Standards
-
-### **TypeScript**
-
-**Always use strict typing:**
-```typescript
-// ✅ Good
-interface Props {
-  message: ChatMessage;
-  onExpand: (id: string) => void;
-}
-
-// ❌ Bad
-interface Props {
-  message: any;
-  onExpand: Function;
-}
-```
-
-**Prefer type inference where clear:**
-```typescript
-// ✅ Good - type is obvious
-const messages = parseLog(logText);
-
-// ❌ Bad - unnecessary annotation
-const messages: ParsedSession = parseLog(logText);
-```
-
-**Use discriminated unions:**
-```typescript
-// ✅ Good
-type ToolCallType = 'read' | 'search' | 'navigate' | 'click';
-type ContentSegmentType = 'text' | 'tool_call';
-
-interface ToolCall {
-  type: ToolCallType;
-  action: string;
-}
-
-// ❌ Bad
-interface ToolCall {
-  type: string;
-  action: string;
-}
-```
-
-**NEVER use `any` type - prefer specific types:**
-```typescript
-// ✅ Good - use union types
-interface Variable {
-  value?: string | number | boolean | Record<string, unknown> | null;
-}
-
-// ✅ Good - use unknown with type guards
-function parseData(data: unknown): void {
-  if (typeof data === 'string') {
-    // data is now string
-  }
-}
-
-// ✅ Good - use Record for flexible objects
-function handle(item: Record<string, unknown>): void {
-  const value = item.key as string; // explicit cast with validation
-}
-
-// ❌ Bad - `any` defeats type safety
-interface Variable {
-  value?: any; // NO!
-}
-
-// ❌ Bad - overly broad
-function handle(item: any): void {}
-```
-
-### **React & Next.js**
-
-**Always use 'use client' for interactive components:**
-```typescript
-// ✅ Good
-'use client';
-
-import { useState } from 'react';
-
-export default function InteractiveComponent() {
-  const [isOpen, setIsOpen] = useState(false);
-  // ...
-}
-```
-
-**Prefer function components:**
-```typescript
-// ✅ Good
-export default function ChatMessage({ message }: Props) {
-  return <div>{message.content}</div>;
-}
-
-// ❌ Bad - avoid class components
-export default class ChatMessage extends React.Component {
-  render() {
-    return <div>{this.props.message.content}</div>;
-  }
-}
-```
-
-**Use semantic HTML:**
-```typescript
-// ✅ Good
-<button onClick={handleClick}>Click me</button>
-
-// ❌ Bad
-<div onClick={handleClick} className="cursor-pointer">Click me</div>
-```
-
-### **Tailwind CSS**
-
-**Use utility classes, avoid custom CSS:**
-```typescript
-// ✅ Good
-<div className="bg-gray-800 rounded-md border border-gray-700 p-4">
-
-// ❌ Bad
-<div className="custom-card">
-// With custom CSS in globals.css
-```
-
-**Maintain responsive design:**
-```typescript
-// ✅ Good - mobile-first
-<div className="text-sm md:text-base lg:text-lg">
-
-// ❌ Bad - desktop-only
-<div className="text-lg">
-```
-
-### **Naming Conventions**
-
-```typescript
-// Files
-ChatMessage.tsx           // Components: PascalCase
-gist-fetcher.ts          // Utils: kebab-case
-parser.test.ts           // Tests: *.test.ts
-types.ts                 // Types: types.ts
-
-// Variables
-const messageId = '123'; // camelCase
-const USER_ROLE = 'user'; // UPPER_CASE for constants
-
-// Functions
-function parseMessage() {} // camelCase
-function ChatMessage() {}  // PascalCase for components
-
-// Types
-interface ChatMessage {}   // PascalCase
-type ToolCallType = ...   // PascalCase
-```
-
----
-
-## 🧪 Testing Requirements
-
-### **Unit Test Requirements**
-
-**Every parser function must have tests:**
-```typescript
-// src/lib/parser/index.ts
-export function parseLog(logText: string): ParsedSession {
-  // implementation
-}
-
-// tests/unit/parser.test.ts
-describe('parseLog', () => {
-  it('should parse user messages', () => {
-    const log = 'digitarald: Hello';
-    const result = parseLog(log);
     expect(result.messages[0].role).toBe('user');
-    expect(result.messages[0].contentSegments).toHaveLength(1);
-    expect(result.messages[0].contentSegments[0].type).toBe('text');
-  });
-
-  it('should handle empty input', () => {
-    const result = parseLog('');
-    expect(result.messages).toHaveLength(0);
-  });
-
-  it('should interleave text and tool calls correctly', () => {
-    const log = 'GitHub Copilot: Text\n\nRan Click\n\nMore text';
-    const result = parseLog(log);
     expect(result.messages[0].contentSegments[0].type).toBe('text');
     expect(result.messages[0].contentSegments[1].type).toBe('tool_call');
-    expect(result.messages[0].contentSegments[2].type).toBe('text');
-  });
-
-  it('should parse apply patch tool call', () => {
-    const log = 'GitHub Copilot: Patch\nUsing "Apply Patch"';
-    const result = parseLog(log);
-    const seg = result.messages[0].contentSegments.find(s => s.type === 'tool_call');
-    if (seg?.type === 'tool_call') {
-      expect(seg.toolCall.type).toBe('patch');
-      expect(seg.toolCall.action).toBe('Apply Patch');
-    }
-  });
-
-  it('should parse discovering tests line', () => {
-    const log = 'GitHub Copilot: Phase\nDiscovering tests...';
-    const result = parseLog(log);
-    const seg = result.messages[0].contentSegments.find(s => s.type === 'tool_call');
-    if (seg?.type === 'tool_call') {
-      expect(seg.toolCall.type).toBe('test');
-      expect(seg.toolCall.action).toBe('Discovering tests');
-      expect(seg.toolCall.status).toBe('pending');
-    }
-  });
-
-  it('should parse test summary line', () => {
-    const log = 'GitHub Copilot: Results\n45/45 tests passed (100%)';
-    const result = parseLog(log);
-    const seg = result.messages[0].contentSegments.find(s => s.type === 'tool_call');
-    if (seg?.type === 'tool_call') {
-      expect(seg.toolCall.type).toBe('test');
-      expect(seg.toolCall.output).toBe('45/45 (100%)');
-    }
-  });
-  
-  it('should parse multi-replace tool call', () => {
-    const log = 'GitHub Copilot: Start\nUsing "Multi-Replace String in Files"';
-    const result = parseLog(log);
-    const seg = result.messages[0].contentSegments.find(s => s.type === 'tool_call');
-    if (seg?.type === 'tool_call') {
-      expect(seg.toolCall.type).toBe('replace');
-    }
-  });
-
-  it('should parse multi-search split into multiple tool calls', () => {
-    const line = 'Searched for regex `search.*icon`|Searched (**/src/components/**), no results';
-    const log = `GitHub Copilot: Multi search test\n${line}`;
-    const result = parseLog(log);
-    const toolCalls = result.messages[0].contentSegments.filter(s => s.type === 'tool_call');
-    expect(toolCalls.length).toBe(2);
-  });
-});
-```
-
-**Test edge cases:**
-```typescript
-describe('edge cases', () => {
-  it('should handle code blocks without language', () => {
-    const log = 'GitHub Copilot: Code:\n```\nconst x = 1;\n```';
-    const result = parseLog(log);
-    expect(result.messages[0].codeBlocks[0].language).toBe('plaintext');
-  });
-
-  it('should preserve markdown in text segments', () => {
-    const log = 'GitHub Copilot: **bold** and `code`';
-    const result = parseLog(log);
-    const textSeg = result.messages[0].contentSegments[0];
-    if (textSeg.type === 'text') {
-      expect(textSeg.content).toContain('**bold**');
-      expect(textSeg.content).toContain('`code`');
-    }
-  });
-
-  it('should handle consecutive tool calls', () => {
-    const log = 'GitHub Copilot: Start\n\nRan Click\nRan Navigate';
-    const result = parseLog(log);
-    const toolSegments = result.messages[0].contentSegments.filter(s => s.type === 'tool_call');
-    expect(toolSegments).toHaveLength(2);
-  });
-  
-  it('should handle search with no matches', () => {
-    const log = 'GitHub Copilot: Phase\nSearched for files matching `**/Footer*`, no matches';
-    const result = parseLog(log);
-    const toolSegments = result.messages[0].contentSegments.filter(s => s.type === 'tool_call');
-    expect(toolSegments).toHaveLength(1);
-    if (toolSegments[0].type === 'tool_call') {
-      expect(toolSegments[0].toolCall.output).toBe('0 results');
-    }
-  });
-
-  it('should handle parentheses search pattern', () => {
-    const log = 'GitHub Copilot: Phase\nSearched (**/src/components/**), no results';
-    const result = parseLog(log);
-    const toolSegments = result.messages[0].contentSegments.filter(s => s.type === 'tool_call');
-    expect(toolSegments).toHaveLength(1);
-    if (toolSegments[0].type === 'tool_call') {
-      expect(toolSegments[0].toolCall.output).toBe('0 results');
-    }
-  });
-});
-```
-
-### **Running Tests**
-
-```bash
-# Before committing
-npm test                    # Run all unit tests
-
-# During development
-npm run test:unit:watch     # Auto-run unit tests with watch mode
-
-# Check coverage
-npm run test:unit:coverage  # Should be >80%
-```
-
----
-
-## 📁 File Structure
-
-### **Adding New Files**
-
-**Parser functionality:**
-```
-src/lib/parser/
-├── index.ts           # Main export
-├── types.ts           # All interfaces
-├── message-parser.ts  # Extract into modules as needed
-└── tool-parser.ts     # Keep functions focused
-```
-
-**UI components:**
-```
-src/components/
-├── ChatMessage.tsx    # One component per file
-├── ToolCall.tsx       # Named exports for subcomponents OK
-├── CodeBlock.tsx      # Keep components small (<200 lines)
-└── FileReference.tsx  # Extract when logic gets complex
-```
-
-**Tests:**
-```
-tests/
-└── unit/
-    ├── parser.test.ts          # Parser logic tests
-    ├── markdown-test.test.ts   # Markdown & interleaving tests
-    └── gist-fetcher.test.ts    # API fetching tests
-```
-
-### **Import Conventions**
-
-```typescript
-// ✅ Good - use path alias
-import { parseLog } from '@/lib/parser';
-import ChatMessage from '@/components/ChatMessage';
-
-// ❌ Bad - relative paths from app/
-import { parseLog } from '../../../lib/parser';
-
-// ✅ Good - group imports
-// 1. External dependencies
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-
-// 2. Internal lib
-import { parseLog } from '@/lib/parser';
-
-// 3. Components
-import ChatMessage from '@/components/ChatMessage';
-
-// 4. Types
-import type { ChatMessage as ChatMessageType } from '@/lib/parser/types';
-```
-
----
-
-## 🛠️ Common Tasks
-
-### **Task 1: Add New Tool Call Type**
-
-**Files to modify:**
-1. `src/lib/parser/types.ts` - Add to `ToolCallType` union
-2. `src/lib/parser/index.ts` - Update `parseToolCall()` method
-3. `src/components/ChatMessage.tsx` - Add icon in `getIcon()`
-4. `tests/unit/parser.test.ts` - Add test case
-
-**Example:**
-```typescript
-// 1. types.ts
-export type ToolCallType = 
-  | 'read'
-  | 'search'
-  | 'evaluate' // ← Add new type
-  | 'other';
-
-// 2. index.ts
-private parseToolCall(line: string): ToolCall | null {
-  // ... existing patterns ...
-  
-  const evalMatch = line.match(/^Ran Evaluate JavaScript/);
-  if (evalMatch) {
-    return {
-      type: 'evaluate',
-      action: 'Evaluate JavaScript',
-      status: 'completed',
-    };
-  }
-  
-  return null;
-}
-
-// 3. ChatMessage.tsx
-const getIcon = () => {
-  switch (toolCall.type) {
-    case 'evaluate': return '⚡';
-    // ... other cases ...
-  }
-};
-
-// 4. parser.test.ts
-it('should parse evaluate tool calls', () => {
-  const log = 'GitHub Copilot: Testing\n\nRan Evaluate JavaScript';
-  const result = parseLog(log);
-  const toolSegments = result.messages[0].contentSegments.filter(s => s.type === 'tool_call');
-  if (toolSegments[0].type === 'tool_call') {
-    expect(toolSegments[0].toolCall.type).toBe('evaluate');
-  }
-});
-```
-
-### **Task 2: Add New UI Component**
-
-**Checklist:**
-- [ ] Create `src/components/NewComponent.tsx`
-- [ ] Add TypeScript interface for props
-- [ ] Use Tailwind utilities (no custom CSS)
-- [ ] Make it accessible (ARIA labels, keyboard navigation)
-- [ ] Add data-testid for testing/debugging
-- [ ] Export from component file
-
-**Template:**
-```typescript
-// src/components/NewComponent.tsx
-'use client';
-
-import { useState } from 'react';
-
-interface NewComponentProps {
-  data: string;
-  onAction: (id: string) => void;
-}
-
-export default function NewComponent({ data, onAction }: NewComponentProps) {
-  const [isActive, setIsActive] = useState(false);
-
-  return (
-    <div 
-      className="bg-gray-800 rounded-md p-4"
-      data-testid="new-component"
-    >
-      <button
-        onClick={() => onAction(data)}
-        className="text-purple-400 hover:text-purple-300"
-        aria-label="Perform action"
-      >
-        {data}
-      </button>
-    </div>
-  );
-}
-```
-
-### **Task 4: Improve Error Handling & Resilience**
-
-**When to improve:**
-- API calls need timeout protection
-- Operations should retry on transient failures
-- Rate limiting needs user-friendly messages
-- Network errors should show helpful context
-
-**Example - Adding timeout and retry logic:**
-```typescript
-export class GistFetcher {
-  private readonly timeout = 10000; // 10 seconds
-  private readonly maxRetries = 3;
-
-  async fetchGist(gistId: string): Promise<GistData> {
-    let lastError: Error | null = null;
-
-    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-
-        try {
-          const response = await fetch(`${this.baseUrl}/${gistId}`, {
-            signal: controller.signal,
-          });
-
-          clearTimeout(timeoutId);
-
-          // Check rate limiting
-          const remaining = response.headers.get('x-ratelimit-remaining');
-          if (remaining === '0') {
-            const resetTime = response.headers.get('x-ratelimit-reset');
-            throw new Error(`Rate limit exceeded. Try again at ${resetTime}`);
-          }
-
-          if (!response.ok) {
-            if (response.status === 404) {
-              throw new Error('Gist not found. Check the URL.');
-            }
-            throw new Error(`Failed: ${response.status} ${response.statusText}`);
-          }
-
-          return await response.json();
-        } finally {
-          clearTimeout(timeoutId);
-        }
-      } catch (error) {
-        lastError = error instanceof Error ? error : new Error('Unknown error');
-        
-        // Don't retry on client errors
-        if (lastError.message.includes('not found')) {
-          throw lastError;
-        }
-
-        // Retry with exponential backoff
-        if (attempt < this.maxRetries) {
-          await new Promise(resolve =>
-            setTimeout(resolve, 1000 * Math.pow(2, attempt - 1))
-          );
-        }
-      }
-    }
-
-    throw lastError;
-  }
-}
-```
-
-**Key principles:**
-- Timeout prevents hanging requests (10s default)
-- Retry logic handles transient network issues (exponential backoff)
-- Rate limit detection reads GitHub API headers
-- Specific error messages help users understand what went wrong
-- Don't retry on client errors (404, 403, etc.)
-
-### **Task 5: Update GitHub Actions**
-
-**Files:**
-- `.github/workflows/deploy.yml`
-
-**Common updates:**
-```yaml
-# Add new test step
-- name: Run security audit
-  run: npm audit --audit-level=high
-
-# Update Node version
-- name: Setup Node
-  uses: actions/setup-node@v4
-  with:
-    node-version: '20' # ← Update here
-
-# Add caching
-- name: Cache dependencies
-  uses: actions/cache@v3
-  with:
-    path: ~/.npm
-    key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-```
-
----
-
-## 🔄 Development Workflow
-
-### **Before Starting Work**
-
-```bash
-# 1. Pull latest changes
-git pull origin main
-
-# 2. Install dependencies (if package.json changed)
-npm install
-
-# 3. Verify setup
-npm run type-check
-npm run lint
-npm test
-
-# 4. Start dev server (usually already runs)
-npm run dev
-
-# 5. Start test watch mode (in another terminal)
-npm run test:unit:watch
-```
-
-### **During Development**
-
-**TDD Workflow (Recommended):**
-1. ✅ Write failing test
-2. ✅ Write minimal code to pass
-3. ✅ Refactor
-4. ✅ Repeat
-
-**Example session:**
-```bash
-# Terminal 1: Dev server
-npm run dev
-
-# Terminal 2: Test watcher
-npm run test:unit:watch
-
-# Terminal 3: Your commands
-git status
 git add .
-git commit -m "feat: add evaluate tool call type"
-```
 
-### **Before Committing**
 
-Run via subagent:
 
-```bash
-# 1. Type check
-npm run type-check
-
-# 2. Lint
-npm run lint
-
-# 3. Format
-npx prettier --write .
-
-# 4. Run all tests
-npm test
-
-# 5. Build test
-npm run build
-
-# 6. Commit
-git add .
-git commit -m "type: description"
-
-# Commit message format:
-# feat: new feature
-# fix: bug fix
-# docs: documentation
-# test: adding tests
-# refactor: code refactoring
 # style: formatting
 # chore: maintenance
 ```
 
-### **Code Review Checklist**
-
-Before marking work as complete:
-
-- [ ] All tests pass (`npm test`)
-- [ ] Type check passes (`npm run type-check`)
-- [ ] Lint passes (`npm run lint`)
-- [ ] Code is formatted (`npx prettier --write .`)
-- [ ] New features have unit tests
-- [ ] No console.log statements left in code
-- [ ] Comments explain "why", not "what"
-- [ ] Accessibility attributes added (aria-label, aria-expanded, aria-label, etc.)
-- [ ] Mobile responsive
-- [ ] Follows existing patterns in codebase
-- [ ] No `any` types in TypeScript code
-- [ ] Error handling implemented for external APIs (timeouts, retries, rate limits)
-
----
-
-## 🤖 AI Agent Guidelines
-
-### **When Contributing As An AI**
-
 **DO:**
-- ✅ Follow existing patterns in the codebase
-- ✅ Ask clarifying questions if requirements are unclear
-- ✅ Write tests before implementation (TDD)
-- ✅ Keep changes focused and atomic
-- ✅ Add comments explaining complex logic
-- ✅ Check if similar functionality exists before adding
-- ✅ Validate your changes by running tests
-- ✅ Consider edge cases and error handling
+# AI Agent Contribution Guide
 
-**DON'T:**
-- ❌ Make sweeping changes without discussion
-- ❌ Mix multiple concerns in one change
-- ❌ Ignore TypeScript errors
-- ❌ Skip writing tests
-- ❌ Add external dependencies without justification
-- ❌ Use `any` type
-- ❌ Ignore existing code style
-- ❌ Leave TODO comments without creating issues
-
-### **Communication Style**
-
-When working with humans:
-
-```typescript
-// ✅ Good - explain your reasoning
-// I'm adding a timeout to prevent infinite parsing loops
-// that could occur with malformed nested code blocks
-const MAX_ITERATIONS = 10000;
-
-// ❌ Bad - unclear purpose
-// TODO: fix this
-const MAX = 10000;
-```
-
-When proposing changes:
-
-```markdown
-## Proposed Change: Add Support for Image References
-
-**Problem:** Parser doesn't handle image references in logs
-
-**Solution:** 
-1. Add ImageReference type to types.ts
-2. Update parseToolCall to detect image patterns
-3. Add ImageRef component for rendering
-
-**Test Plan:**
-- Unit test for image URL parsing
-- Unit test for ImageReference type integration
-- Unit test for proper segment ordering with images
-
-**Impact:** 
-- ~50 lines added
-- 0 breaking changes
-- Improves feature completeness
-```
-
-### **Debugging Assistance**
-
-When helping debug:
-
-```typescript
-// ✅ Good - systematic debugging
-// Check 1: Is the regex matching?
-console.log('Regex test:', /pattern/.test(line));
-
-// Check 2: What's the actual input?
-console.log('Input line:', JSON.stringify(line));
-
-// Check 3: What's being returned?
-console.log('Parse result:', result);
-
-// ❌ Bad - vague debugging
-// hmm, it's broken
-console.log(stuff);
-```
-
-### **Suggesting Improvements**
-
-Structure suggestions:
-
-```markdown
-**Current Behavior:**
-Parser doesn't handle nested code blocks
-
-**Suggested Improvement:**
-Add a stack-based approach for tracking code block depth
-
-**Benefits:**
-- Handles arbitrary nesting
-- More robust parsing
-- Clearer code
-
-**Trade-offs:**
-- Slightly more complex
-- ~20% slower (acceptable for client-side)
-
-**Implementation Effort:** ~2 hours
-**Priority:** Medium
-```
+Last Updated: November 3, 2025  
+Audience: AI coding assistants (GitHub Copilot, Claude, Cursor, etc.)
 
 ---
 
-## 📚 Examples
+## 1. Purpose & Scope
+Render GitHub Copilot VS Code chat logs as a static Next.js site (App Router, `output: 'export'`). Everything is client-side: paste a Gist URL → fetch → parse → render. Focus: correctness, clarity, accessibility, and maintainability.
 
-### **Example 1: Adding a New Feature**
+Core guardrails:
+1. Static export only (no API routes, no server components, no runtime data fetching on the server).
+2. Library‑first architecture (parser is pure TypeScript, UI-free, fully unit tested).
+3. Zero `any` types; strict TypeScript must pass.
+4. Interleaved `contentSegments` preserve exact original ordering.
+5. Accessibility: semantic HTML + ARIA labels.
+6. Resilience: retries, timeouts, rate limit awareness.
 
-**Feature:** Add support for collapsible message groups
+---
 
-```typescript
-// 1. Add type
-// src/lib/parser/types.ts
-export interface MessageGroup {
-  id: string;
-  title: string;
-  messages: ChatMessage[];
-}
-
-// 2. Add parser logic
-// src/lib/parser/index.ts
-private parseMessageGroups(messages: ChatMessage[]): MessageGroup[] {
-  const groups: MessageGroup[] = [];
-  let currentGroup: ChatMessage[] = [];
-  
-  messages.forEach(msg => {
-    if (msg.content.startsWith('## ')) {
-      if (currentGroup.length > 0) {
-        groups.push({
-          id: generateId(),
-          title: extractTitle(currentGroup[0]),
-          messages: currentGroup,
-        });
-      }
-      currentGroup = [msg];
-    } else {
-      currentGroup.push(msg);
-    }
-  });
-  
-  return groups;
-}
-
-// 3. Add UI component
-// src/components/MessageGroup.tsx
-'use client';
-
-import { useState } from 'react';
-import ChatMessage from './ChatMessage';
-import type { MessageGroup } from '@/lib/parser/types';
-
-export default function MessageGroupComponent({ group }: { group: MessageGroup }) {
-  const [isExpanded, setIsExpanded] = useState(true);
-  
-  return (
-    <div className="border-l-2 border-purple-600 pl-4">
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center gap-2 text-lg font-semibold mb-2"
-      >
-        <span>{isExpanded ? '▼' : '▶'}</span>
-        <span>{group.title}</span>
-      </button>
-      {isExpanded && (
-        <div>
-          {group.messages.map(msg => (
-            <ChatMessage key={msg.id} message={msg} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// 4. Add tests
-// tests/unit/parser.test.ts
-describe('parseMessageGroups', () => {
-  it('should group messages by headers', () => {
-    const messages = [
-      { content: '## Group 1', ... },
-      { content: 'Message 1', ... },
-      { content: '## Group 2', ... },
-      { content: 'Message 2', ... },
-    ];
-    
-    const groups = parseMessageGroups(messages);
-    expect(groups).toHaveLength(2);
-    expect(groups[0].title).toBe('Group 1');
-  });
-});
-
-// 5. Update page to use groups
-// src/app/view/[gistId]/page.tsx
-const groups = session?.messageGroups || [];
-return (
-  <div>
-    {groups.map(group => (
-      <MessageGroupComponent key={group.id} group={group} />
-    ))}
-  </div>
-);
+## 2. Architecture (Top → Bottom)
 ```
+src/app/        Next.js pages & layout (entry points)
+src/components/ Presentational + interactive React components ('use client')
+src/lib/        Fetching, history, generic utilities
+src/lib/parser/ Pure parsing logic (no React/DOM/Next imports)
+```
+Rules:
+- Parser never imports components or Next.js APIs.
+- All parser types exported from `types.ts`.
+- Side effects isolated to UI layer (fetch, storage, DOM interactions).
 
-### **Example 2: Fixing a Bug**
+---
 
-**Bug:** Parser fails on code blocks with triple backticks inside
+## 3. Data Model Essentials
+Key discriminated union: `ContentSegment` (e.g. `text`, `tool_call`, `code_block`). Segments appear in original order—never batch or reorder.
 
+Tool call metadata:
+- `rawAction`: original source string
+- `action`: normalized display form
+- `normalizedResultCount`: number for search calls (0 for "no results")
+- `fromSubAgent`: nested delegated call flag
+- `subAgentCalls`: child array under a parent call
+
+Design preference: enrich metadata instead of heuristically parsing UI strings later.
+
+---
+
+## 4. Standards (Condensed)
+TypeScript:
+- No `any`; use unions, `unknown` + guards, or `Record<string, unknown>` with validation.
+- Prefer inference; annotate only where it adds clarity.
+- Discriminated unions for variant logic.
+
+React / Next.js:
+- Use `'use client'` for interactive components.
+- Functional components only; semantic HTML > generic divs with click handlers.
+- Keep components < ~200 LOC; extract once logic grows.
+
+Tailwind:
+- Prefer utility classes; avoid custom CSS unless truly necessary.
+- Responsive: start mobile, layer `md:`/`lg:` as needed.
+
+Naming:
+- Files: Components `PascalCase.tsx`, utilities `kebab-case.ts`, tests `*.test.ts`.
+- Constants: UPPER_CASE; variables/functions camelCase.
+
+Accessibility:
+- Interactive toggles: `aria-label`, `aria-expanded`.
+- Avoid ambiguous icons without text for critical actions.
+
+---
+
+## 5. Testing Strategy
+Framework: Vitest. Goal: fast deterministic unit tests; >80% coverage.
+
+Focus areas:
+- Parser correctness (segment ordering, tool call extraction, edge cases).
+- Markdown rendering (inline code, emphasis preserved in `text` segments).
+- Subagent nesting (indentation, auto-expansion, icon rendering).
+- Resilience (search parsing, zero-result normalization).
+
+Do NOT test internal React state—assert rendered structure or parsed data.
+
+Minimal illustrative parser test:
 ```typescript
-// 1. Reproduce with test
-it('should handle nested triple backticks', () => {
-  const log = `
-GitHub Copilot: Here's an example:
-
-\`\`\`markdown
-# Example
-\`\`\`code
-nested
-\`\`\`
-\`\`\`
-`;
-  
+it('interleaves text and tool calls', () => {
+  const log = 'GitHub Copilot: Intro\n\nRan Click\n\nMore';
   const result = parseLog(log);
-  expect(result.messages[0].codeBlocks).toHaveLength(1);
-  expect(result.messages[0].codeBlocks[0].code).toContain('nested');
+  const segs = result.messages[0].contentSegments;
+  expect(segs.map(s => s.type)).toEqual(['text', 'tool_call', 'text']);
 });
-
-// Test fails ❌
-
-// 2. Debug
-// The regex is too greedy and matches all backticks
-// Need to track nesting depth
-
-// 3. Fix
-private parseCodeBlocks(lines: string[]): CodeBlock[] {
-  const blocks: CodeBlock[] = [];
-  let depth = 0;
-  let currentBlock: string[] = [];
-  let language = 'plaintext';
-  
-  for (const line of lines) {
-    if (line.trim().startsWith('```')) {
-      if (depth === 0) {
-        language = line.trim().slice(3) || 'plaintext';
-        depth++;
-      } else {
-        depth--;
-        if (depth === 0) {
-          blocks.push({ language, code: currentBlock.join('\n') });
-          currentBlock = [];
-        } else {
-          currentBlock.push(line);
-        }
-      }
-    } else if (depth > 0) {
-      currentBlock.push(line);
-    }
-  }
-  
-  return blocks;
-}
-
-// Test passes ✅
-
-// 4. Add more edge cases
-it('should handle multiple nested levels', () => { ... });
-it('should handle unclosed code blocks', () => { ... });
 ```
 
-### **Example 3: Refactoring**
-
-**Goal:** Extract tool call parsing into separate module
-
-```typescript
-// Before: All in index.ts (500+ lines)
-// After: Split into focused modules
-
-// src/lib/parser/tool-parser.ts
-export class ToolCallParser {
-  parse(line: string): ToolCall | null {
-    return (
-      this.parseRanAction(line) ||
-      this.parseReadFile(line) ||
-      this.parseSearch(line) ||
-      null
-    );
-  }
-  
-  private parseRanAction(line: string): ToolCall | null {
-    const match = line.match(/^Ran\s+(.+?)$/);
-    if (!match) return null;
-    
-    return {
-      type: 'run',
-      action: match[1].trim(),
-      status: 'completed',
-    };
-  }
-  
-  private parseReadFile(line: string): ToolCall | null {
-    const match = line.match(/^Read\s+\[\]\(file:\/\/(.+?)\)/);
-    if (!match) return null;
-    
-    return {
-      type: 'read',
-      action: `Read ${match[1].split('/').pop()}`,
-      input: match[1],
-      status: 'completed',
-    };
-  }
-  
-  private parseSearch(line: string): ToolCall | null {
-    const match = line.match(/^Searched\s+(.+?),\s*(\d+)\s*results?/);
-    if (!match) return null;
-    
-    return {
-      type: 'search',
-      action: match[1],
-      output: `${match[2]} results`,
-      status: 'completed',
-    };
-  }
-}
-
-// src/lib/parser/index.ts
-import { ToolCallParser } from './tool-parser';
-
-export class CopilotLogParser {
-  private toolParser = new ToolCallParser();
-  
-  // ... now much cleaner ...
-  
-  private parseToolCall(line: string): ToolCall | null {
-    return this.toolParser.parse(line);
-  }
-}
-
-// tests/unit/tool-parser.test.ts
-describe('ToolCallParser', () => {
-  const parser = new ToolCallParser();
-  
-  describe('parseRanAction', () => {
-    it('should parse run actions', () => {
-      const result = parser.parse('Ran Navigate to a URL');
-      expect(result?.type).toBe('run');
-    });
-  });
-  
-  // ... separate test suite ...
-});
+Running:
+```bash
+npm test
+npm run test:unit:watch
+npm run test:unit:coverage
 ```
 
 ---
 
-## 🔧 Troubleshooting
+## 6. Common Tasks (Blueprints)
+Add Tool Call Type:
+1. Extend `ToolCallType` in `parser/types.ts`.
+2. Add recognition logic in `parser/index.ts` (or extracted module).
+3. Add icon mapping in `ChatMessage.tsx`.
+4. Add unit test covering parse + rendering.
 
-### **Common Issues**
+Add UI Component:
+1. Create `src/components/ComponentName.tsx` with `'use client'`.
+2. Strongly typed props; no `any`.
+3. Include accessibility + `data-testid` for complex interactions.
+4. Keep styling in Tailwind utilities.
 
-**Issue: React StrictMode causing double-render bugs**
-```typescript
-// Problem: useEffect runs twice in development, consuming sessionStorage/state
-// Symptom: Content loads on first render but disappears on second render
+Improve Resilience (fetch):
+1. Add AbortController timeout.
+2. Retry transient failures (exponential backoff). Avoid retry on 4xx fatal errors.
+3. Inspect rate limit headers; surface user-friendly message.
 
-// Solution: Use a ref to prevent double-execution
-const hasLoadedRef = useRef(false);
+Update CI (deploy workflow):
+1. Ensure Node version bump.
+2. Add caching for `~/.npm`.
+3. Optionally add `npm audit --audit-level=high` step.
 
-useEffect(() => {
-  async function loadContent() {
-    // Prevent double-loading in React StrictMode
-    if (hasLoadedRef.current) {
-      return;
-    }
-    hasLoadedRef.current = true;
-    
-    // ... rest of loading logic
-  }
-  loadContent();
-}, [dependencies]);
-```
+---
 
-**Issue: Types not working**
+## 7. Subagent Tool Calls
+Model:
+- Parent orchestrator (type `subagent`) holds `subAgentCalls`.
+- Nested calls flagged `fromSubAgent: true` and indented (`12px * depth`).
+- Parent with children auto-expands; nested calls show 🤖 plus their tool icon.
+
+Testing considerations:
+- Assert icon presence, indentation style, expansion state.
+- Use stable ARIA labels rather than brittle text concatenation.
+
+Edge fallback: Orphan `fromSubAgent` calls become top-level if no parent seen.
+
+---
+
+## 8. Action Normalization
+Purpose: decouple semantics from presentational strings.
+Rules:
+1. Strip leading operational verbs (`Ran`, `Using`).
+2. Compress read paths to filenames.
+3. Coerce type to `search` if `rawAction` starts with `Searched`.
+4. Split multi-search lines into discrete tool calls.
+5. Calculate `normalizedResultCount` (default undefined; 0 for "no results/matches").
+
+Preferred test assertion: numeric counts / normalized fields > string fragments.
+
+---
+
+## 9. Development Workflow (Condensed)
+Setup:
 ```bash
-# Solution 1: Regenerate Next.js types
-npm run dev  # Start and stop server
-
-# Solution 2: Clean and reinstall
-rm -rf .next node_modules package-lock.json
+git pull origin main
 npm install
-```
-
-**Issue: Tests failing in CI but passing locally**
-```bash
-# Possible causes:
-# 1. Missing environment variables
-# 2. Different Node versions
-# 3. Cached data
-
-# Solution: Check GitHub Actions logs
-# Look for differences in Node version, environment, etc.
-```
-
-**Issue: Playwright browser not found**
-```bash
-# Solution: Reinstall browsers
-npx playwright install chromium
-```
-
-**Issue: Tailwind classes not working**
-```bash
-# Check: Is the file in tailwind.config.ts content array?
-# Check: Did you restart dev server after adding?
-# Check: Is it a custom class that doesn't exist?
-
-# Solution: Restart dev server
+npm run type-check && npm run lint && npm test
 npm run dev
 ```
 
-**Issue: Build fails but dev works**
+TDD Loop: write failing test → minimal implementation → refactor → repeat.
+
+Pre-commit:
 ```bash
-# Common cause: Dynamic imports or client-side only code
-
-# Solution: Add 'use client' directive
-'use client';
-
-// Or use dynamic import
-const Component = dynamic(() => import('./Component'), { ssr: false });
+npm run type-check
+npm run lint
+npx prettier --write .
+npm test
+npm run build
+git commit -m "feat: short description"
 ```
 
-### **Debugging Tips**
-
-**Parser debugging:**
-```typescript
-// Add verbose logging
-export function parseLog(logText: string): ParsedSession {
-  const DEBUG = true; // Toggle this
-  
-  if (DEBUG) {
-    console.log('Input lines:', logText.split('\n').length);
-  }
-  
-  // ... parsing logic ...
-  
-  if (DEBUG) {
-    console.log('Parsed messages:', messages.length);
-    console.log('Tool calls:', messages.flatMap(m => m.toolCalls).length);
-  }
-  
-  return { messages, metadata };
-}
-```
-
-**React debugging:**
-```typescript
-// Use React DevTools
-// Add display names
-Component.displayName = 'ChatMessage';
-
-// Add debug logging
-useEffect(() => {
-  console.log('ChatMessage mounted:', message.id);
-  return () => console.log('ChatMessage unmounted:', message.id);
-}, [message.id]);
-```
-
-**Test debugging:**
-```typescript
-// For unit tests
-it.only('should debug this test', () => { ... });
-```
+Commit prefixes: feat | fix | docs | test | refactor | style | chore
 
 ---
 
-## 📖 Additional Resources
+## 10. Troubleshooting (Quick Table)
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| Double effect run | React StrictMode | Guard with `useRef` initialization flag |
+| Missing styles | Tailwind content mismatch | Verify `tailwind.config` + restart dev |
+| Build fails only | Using client-only code in server context | Add `'use client'` or dynamic import with `ssr:false` |
+| Zero search results misparsed | Pattern splitting issue | Validate multi-search splitting & `normalizedResultCount` |
+| Rate limit errors | Exhausted unauthenticated quota | Surface reset timestamp to user |
 
-### **Key Files to Understand**
-
-1. **src/lib/parser/index.ts** - Core parsing logic with interleaved content segments
-2. **src/lib/parser/types.ts** - Type definitions including ContentSegment discriminated union
-3. **src/components/ChatMessage.tsx** - Main UI component with markdown rendering
-4. **tests/unit/parser.test.ts** - Parser test examples
-5. **tests/unit/markdown-test.test.ts** - Markdown and interleaving tests
-6. **next.config.js** - Build configuration
-
-### **External Documentation**
-
-- [Next.js App Router](https://nextjs.org/docs/app)
-- [Tailwind CSS](https://tailwindcss.com/docs)
-- [Vitest API](https://vitest.dev/api/)
-- [Playwright API](https://playwright.dev/docs/api/class-test)
-- [GitHub Gist API](https://docs.github.com/en/rest/gists)
-
-### **Design Decisions**
-
-**Q: Why static export instead of server components?**
-A: To enable GitHub Pages hosting without a server. Keeps deployment simple and costs zero.
-
-**Q: Why library-first architecture?**
-A: Parser logic is complex and changes frequently. Keeping it separate:
-- Makes testing easier
-- Enables reuse in other projects
-- Clarifies responsibilities
-
-**Q: Why Vitest over Jest?**
-A: Vitest is faster, has better TypeScript support, and works seamlessly with Vite/Next.js.
-
-**Q: Why not use a markdown parser library?**
-A: Copilot logs have custom syntax that markdown parsers don't understand. Custom parser gives full control.
-
-**Q: Why use contentSegments instead of separate content and toolCalls arrays?**
-A: The interleaved architecture solves the critical bug where all text appeared before all tool calls. ContentSegments maintain the exact order from the log, allowing text and tool calls to flow naturally. This matches how Copilot actually presents information.
-
-**Q: Why use useRef to prevent double-loading?**
-A: React StrictMode in development intentionally runs effects twice to catch bugs. For operations that consume resources (like removing from sessionStorage), we use a ref to track completion and prevent the second execution from causing errors. The ref persists across renders but doesn't trigger re-renders, making it ideal for tracking initialization state.
-
-**Q: How are subagent tool calls represented?**
-A: Nested calls set `fromSubAgent: true` and are stored under the parent tool call's `subAgentCalls` array. The UI auto-expands parents containing subagent calls, applies an indentation of 12px per depth level, and shows a 🤖 icon for each nested subagent-originated call. This preserves ordering while visually distinguishing delegated work.
-
-
-## 🤖 Subagent Tool Calls
-
-**Purpose:** Visually distinguish and structurally nest tool calls executed by spawned subagents while keeping parent tool call context intact.
-
-**Data Model:**
-- `fromSubAgent: true` flag on nested tool calls (set by JSON parser).
-- Nested calls collected under `subAgentCalls` array of the last preceding top-level (non-subagent) tool call.
-- Legacy text prefixes like `[Subagent]` are stripped during UI rendering for cleaner display.
-
-**Parser Behavior (JSON):**
-1. Iterate response items; when encountering a tool invocation with `fromSubAgent: true`, attach to `lastTopLevelToolCall.subAgentCalls` instead of emitting a top-level segment.
-2. Maintains original ordering; accumulated text segments are flushed before tool calls ensuring correct interleaving.
-3. For read operations inside subagents, file path is reduced to filename and action normalized to `Read <filename>`.
-
-**UI Behavior (`ChatMessage.tsx`):**
-- `ToolCallItem` receives `depth` (starting at 0 for top-level). Nested subagent calls increment depth by 1.
-- Indentation via inline style: `marginLeft = depth * 12` (px) for wrapper `<div class="mb-0.5 rounded">`.
-- Auto-expansion: Parent tool call initializes `isExpanded` to true when it has any `subAgentCalls`.
-- Icon logic (updated):
-  - Parent orchestrator (`toolCall.type === 'subagent'`) shows a root 🤖 icon (`data-testid="subagent-root-icon"`).
-  - Nested subagent calls show a leading 🤖 indicator plus their normal tool-specific icon (e.g. 📄 for read) for styling parity.
-  - Status icon now reflects `toolCall.status`: ✓ completed, … pending, ⚠ failed.
-- Accessibility: Each clickable header includes `aria-label="Toggle details for <Action>"` and `aria-expanded`. Tests use this stable label rather than brittle text concatenation.
-
-**Testing (`tests/unit/subagent-icon.test.tsx`):**
-```typescript
-it('shows 🤖 icon for nested subagent tool calls and expands parent by default', () => {
-  const parsed = parseLog(JSON.stringify(fixture));
-  render(<ChatMessage message={assistantMessage} />);
-  expect(screen.getAllByText('🤖')).toHaveLength(1); // icon present
-  const toggle = screen.getByLabelText('Toggle details for Read index.ts'); // nested read call
-  const wrapper = toggle.parentElement; // indentation wrapper
-  expect(wrapper?.getAttribute('style')).toMatch(/margin-left:\s*12px/);
-});
-```
-
-**Edge Cases Covered:**
-- Multiple subagent calls under one parent → all indented equally.
-- Mixed file edits + subagent calls → edits first, nested calls below.
-- Read tool calls inside subagents preserve filename extraction and icon.
-- No parent present (malformed log) → subagent calls treated as top-level (fallback).
-
-**Extending Feature:**
-1. Add new tool type icon in `getIcon()` if needed (keep robot indicator separate when `fromSubAgent`).
-2. Ensure JSON export uses `fromSubAgent` for nested calls and `runSubagent` maps to `type: 'subagent'`.
-3. Write a unit test asserting: root subagent icon, nested subagent indicator, indentation depth, auto-expansion, and status icon correctness.
-4. Avoid relying on raw text spanning multiple `<span>`s; prefer ARIA labels or `data-testid`.
-
-**Design Rationale:**
-- Nesting clarifies causal relationship between parent action and delegated subagent work.
-- Indentation + icon avoids verbose textual prefixes that previously cluttered display.
-- Auto-expansion reduces friction—users immediately see delegated work context.
-
-### 🔧 Action Normalization & Search Result Parity
-
-To improve test robustness and cross-format (text vs JSON) comparisons, the parser introduces two metadata fields on every tool call:
-
-| Field | Purpose |
-|-------|---------|
-| `rawAction` | Original, unmodified past/invocation message (e.g. `Ran Navigate to a URL`, `Searched for regex \`pattern\`, 6 results`). |
-| `normalizedResultCount` | Numeric result count for search operations derived from either the tool output or `rawAction` (`no results`/`no matches` → 0). |
-
-Normalization Rules:
-1. `action` strips leading prefixes like `Ran ` or `Using "..."` for cleaner display.
-2. Read operations condense markdown link paths to filenames (e.g. `Read [](file:///path/Button.tsx)` → `Read Button.tsx`).
-3. If `toolId` does not map to `search` but `rawAction` begins with `Searched`, type is overridden to `search` for parity.
-4. Multi-search combined lines in text logs are split; each segment gets its own tool call with its own `rawAction`.
-5. Search calls without explicit numeric counts omit `normalizedResultCount` (undefined) while still providing `rawAction`.
-
-Testing Guidance:
-- Prefer asserting on `normalizedResultCount` rather than string-matching `output` phrases.
-- When `output` is undefined (common in JSON export search calls), fall back to `rawAction` for pattern verification.
-- For parity tests, treat differing `action` strings acceptable if `rawAction` conveys equivalent semantics.
-
-Future Considerations:
-- Optional strict mode: `parseLog(text, { strictParity: true })` to coerce identical `action` formatting across parsers.
-- Capture timing metrics per tool call for performance dashboards.
-- Aggregate search effectiveness (e.g. ratio of zero-result searches).
-
-Rationale: These fields decouple semantic assertions from presentation formatting, reducing brittle tests and enabling richer analytics.
+Parser debug toggle: temporary `DEBUG` flag printing segment counts (remove before commit).
 
 ---
 
-## ✅ Final Checklist
+## 11. Contribution Checklist
+Before merging:
+1. Tests green & coverage ≥ 80%.
+2. Type + lint + build all PASS.
+3. No stray `console.log` (except intentional structured debug removed before commit).
+4. No `any`; unions or guards in place.
+5. Accessibility attributes for interactive elements.
+6. Mobile layout visually acceptable.
+7. Added/updated tests for new behavior (happy path + 1-2 edge cases).
+8. Comments describe intent / rationale, not obvious code.
+9. Parser changes preserve ordering of segments.
+10. Updated README or AGENTS.md if exposing new concepts.
 
-Before marking your contribution complete:
+---
 
-- [ ] Code follows TypeScript strict mode
-- [ ] All tests pass (`npm test`)
-- [ ] Type check passes (`npm run type-check`)
-- [ ] Linting passes (`npm run lint`)
-- [ ] Code is formatted (`npx prettier --write .`)
-- [ ] New features have comprehensive unit tests
-- [ ] Test coverage remains >80%
-- [ ] No console.log statements in production code
-- [ ] No `any` types in TypeScript code
-- [ ] Accessibility attributes added where needed (aria-label, aria-expanded, aria-controls)
-- [ ] Mobile responsive
-- [ ] Follows existing code patterns
-- [ ] Comments explain complex logic
-- [ ] Error handling implemented for async operations (timeouts, retries, rate limits)
-- [ ] Git commit message follows convention
-- [ ] AGENTS.md updated if workflow changed
+## 12. Reference Links
+- Next.js App Router: https://nextjs.org/docs/app
+- Tailwind CSS: https://tailwindcss.com/docs
+- Vitest: https://vitest.dev/api
+- GitHub Gist API: https://docs.github.com/en/rest/gists
+
+---
+
+## 13. Rationale Notes (FAQ)
+Q: Why library-first? → Easier reuse + isolation improves test coverage & refactors.
+Q: Why interleaved segments? → Prevents ordering bugs (text vs tool calls).
+Q: Why strict types/no `any`? → Guarantees parser/UI contract stability.
+Q: Why enrich metadata (`rawAction` etc.)? → Stabilizes tests & enables analytics.
+Q: Why AbortController + retry? → Avoid UI stalls; handle transient network errors gracefully.
+
+---
+
+## 14. Fast Start (TL;DR)
+```bash
+git pull
+npm i
+npm test
+code src/lib/parser/index.ts  # make focused change
+npm run test:unit:watch
+git commit -m "fix: normalize search count"
+```
+
+Keep changes tight, tested, and traceable.
+
+---
+
+## 15. Final Reminder
+If it touches parsing: add/adjust tests FIRST. If it alters UI behavior: assert rendered structure or ARIA in tests. If it adds tool call types: update icon + parser + tests together. Never sacrifice ordering or type safety for speed.
+
+Ship quality, not surprises.

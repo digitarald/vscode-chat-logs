@@ -75,7 +75,7 @@ export interface TaskStatus {
   index?: string;
 }
 
-export type ContentSegmentType = 'text' | 'tool_call';
+export type ContentSegmentType = 'text' | 'tool_call' | 'code_block';
 
 export interface TextSegment {
   type: 'text';
@@ -89,14 +89,21 @@ export interface ToolCallSegment {
   order: number;
 }
 
-export type ContentSegment = TextSegment | ToolCallSegment;
+export interface CodeBlockSegment {
+  type: 'code_block';
+  language: string;
+  code: string;
+  diff?: boolean;
+  order: number;
+}
+
+export type ContentSegment = TextSegment | ToolCallSegment | CodeBlockSegment;
 
 export interface ChatMessage {
   id: string;
   role: MessageRole;
   contentSegments: ContentSegment[];
   timestamp?: Date;
-  codeBlocks?: CodeBlock[];
   fileReferences?: FileReference[];
   tasks?: TaskStatus[];
   variableData?: VariableData[];

@@ -116,9 +116,7 @@ export function createMockChatMessage(overrides = {}) {
   return {
     id: 'msg_1',
     role: 'user' as const,
-    content: 'Test message',
-    toolCalls: [],
-    codeBlocks: [],
+    contentSegments: [{ type: 'text', content: 'Test message', order: 0 }],
     fileReferences: [],
     tasks: [],
     ...overrides,
