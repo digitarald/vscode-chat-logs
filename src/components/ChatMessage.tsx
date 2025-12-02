@@ -5,6 +5,62 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { ChatMessage, ToolCall } from '@/lib/parser/types';
 
+// Thinking Component for displaying AI reasoning
+function ThinkingItem({ content }: { content: string }) {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  return (
+    <div
+      className="rounded"
+      style={{
+        backgroundColor: '#2d2d30',
+        border: '1px solid #3e3e42',
+      }}
+    >
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center gap-2 text-left transition-colors px-3 py-2"
+        style={{ color: '#969696' }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#37373d')}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+        aria-expanded={isExpanded}
+        aria-label="Toggle AI reasoning"
+      >
+        <span className="text-xs select-none">{isExpanded ? '▼' : '▶'}</span>
+        <span className="text-sm">🧠</span>
+        <span className="text-xs font-semibold">Thinking</span>
+      </button>
+      {isExpanded && (
+        <div
+          className="px-3 pb-3 text-xs leading-relaxed select-text"
+          style={{
+            color: '#b0b0b0',
+            borderTop: '1px solid #3e3e42',
+            paddingTop: '12px',
+          }}
+        >
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              p: ({ children }: { children?: React.ReactNode }) => (
+                <p className="mb-2 last:mb-0">{children}</p>
+              ),
+              strong: ({ children }) => (
+                <strong className="font-semibold" style={{ color: '#cccccc' }}>
+                  {children}
+                </strong>
+              ),
+              em: ({ children }) => <em>{children}</em>,
+            }}
+          >
+            {content}
+          </ReactMarkdown>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // FileEdit Component for displaying file edits from multi-replace operations
 function FileEditItem({ fileEdit, index }: { fileEdit: { filePath: string; text: string; range?: { startLine: number; endLine: number; startColumn: number; endColumn: number } }; index: number }) {
   const [isFileExpanded, setIsFileExpanded] = useState(false);
@@ -527,23 +583,13 @@ export default function ChatMessageComponent({ message }: { message: ChatMessage
   const isUser = message.role === 'user';
   
   return (
-    <div
-      className="flex gap-3 py-4 px-4"
-      style={{ backgroundColor: isUser ? '#252526' : '#1e1e1e' }}
-      data-testid="chat-message"
-    >
+    <div className="py-2 px-4" style={{ backgroundColor: '#1e1e1e' }} data-testid="chat-message">
       <div
-        className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold"
-        style={{ backgroundColor: isUser ? '#007acc' : '#68217a', color: '#ffffff' }}
+        className={
+          isUser ? 'max-w-[95%] md:max-w-[80%] lg:max-w-[70%] ml-auto rounded-2xl py-3 px-4' : ''
+        }
+        style={isUser ? { backgroundColor: '#2b5278' } : {}}
       >
-        {isUser ? 'U' : 'AI'}
-      </div>
-
-      <div className="flex-1 min-w-0">
-        <div className="text-sm font-semibold mb-2" style={{ color: '#cccccc' }}>
-          {isUser ? 'digitarald' : 'GitHub Copilot'}
-        </div>
-
         {/* Render interleaved content segments */}
         {message.contentSegments && message.contentSegments.length > 0 && (
           <div>
@@ -748,6 +794,14 @@ export default function ChatMessageComponent({ message }: { message: ChatMessage
                         </code>
                       </pre>
                     </div>
+                  </div>
+                );
+              } else if (segment.type === 'thinking') {
+                const prevType = idx > 0 ? message.contentSegments[idx - 1]?.type : null;
+                const addMargin = prevType === 'text' || prevType === 'tool_call';
+                return (
+                  <div key={idx} className={addMargin ? 'mt-3' : 'mt-2'}>
+                    <ThinkingItem content={segment.content} />
                   </div>
                 );
               }

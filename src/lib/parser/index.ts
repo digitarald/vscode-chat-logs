@@ -10,18 +10,23 @@ import type {
 } from './types';
 import { detectLogFormat } from './format-detector';
 import { parseJsonLog } from './json-parser';
+import { parseChatReplayLog } from './chatreplay-parser';
 
 /**
  * Main entry point for parsing Copilot logs.
- * Automatically detects format (text vs JSON) and routes to appropriate parser.
+ * Automatically detects format (text vs JSON vs chatreplay) and routes to appropriate parser.
  */
 export function parseLog(content: string): ParsedSession {
   const format = detectLogFormat(content);
-  
+
   if (format === 'json') {
     return parseJsonLog(content);
   }
-  
+
+  if (format === 'chatreplay') {
+    return parseChatReplayLog(content);
+  }
+
   // Default to text parser
   const parser = new CopilotLogParser();
   return parser.parse(content);

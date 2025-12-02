@@ -75,7 +75,7 @@ export interface TaskStatus {
   index?: string;
 }
 
-export type ContentSegmentType = 'text' | 'tool_call' | 'code_block';
+export type ContentSegmentType = 'text' | 'tool_call' | 'code_block' | 'thinking';
 
 export interface TextSegment {
   type: 'text';
@@ -97,7 +97,13 @@ export interface CodeBlockSegment {
   order: number;
 }
 
-export type ContentSegment = TextSegment | ToolCallSegment | CodeBlockSegment;
+export interface ThinkingSegment {
+  type: 'thinking';
+  content: string;
+  order: number;
+}
+
+export type ContentSegment = TextSegment | ToolCallSegment | CodeBlockSegment | ThinkingSegment;
 
 export interface ChatMessage {
   id: string;

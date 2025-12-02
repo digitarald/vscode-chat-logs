@@ -161,20 +161,26 @@ function ViewerContent() {
     <div className="min-h-screen" style={{ backgroundColor: '#1e1e1e', color: '#cccccc' }}>
       <div>
         {/* Header */}
-        <div className="px-4 py-3 sticky top-0 z-10 backdrop-blur-sm" style={{ backgroundColor: 'rgba(37, 37, 38, 0.95)', borderBottom: '1px solid #3e3e42' }}>
+        <div
+          className="px-4 py-3 sticky top-0 z-10 backdrop-blur-sm"
+          style={{ backgroundColor: 'rgba(37, 37, 38, 0.95)', borderBottom: '1px solid #3e3e42' }}
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Link 
+              <Link
                 href="/"
                 className="transition-colors"
                 style={{ color: '#969696' }}
-                onMouseEnter={(e) => e.currentTarget.style.color = '#cccccc'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#969696'}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#cccccc')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = '#969696')}
               >
                 ←
               </Link>
               <div className="flex items-center gap-2">
-                <h1 className="text-lg font-semibold flex items-center gap-2" style={{ color: '#cccccc' }}>
+                <h1
+                  className="text-lg font-semibold flex items-center gap-2"
+                  style={{ color: '#cccccc' }}
+                >
                   <span>💬</span>
                   {displayTitle}
                 </h1>
@@ -185,8 +191,8 @@ function ViewerContent() {
                     rel="noopener noreferrer"
                     className="text-sm transition-colors"
                     style={{ color: '#007acc' }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = '#1a8dd8'}
-                    onMouseLeave={(e) => e.currentTarget.style.color = '#007acc'}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = '#1a8dd8')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = '#007acc')}
                     aria-label="Open Gist in new tab"
                   >
                     🔗
@@ -194,25 +200,25 @@ function ViewerContent() {
                 )}
               </div>
             </div>
-            
+
             {session?.metadata && (
               <div className="flex gap-2 text-xs">
-                <span 
+                <span
                   className="px-2 py-1 rounded"
-                  style={{ 
-                    backgroundColor: 'rgba(0, 122, 204, 0.1)', 
+                  style={{
+                    backgroundColor: 'rgba(0, 122, 204, 0.1)',
                     color: '#969696',
-                    border: '1px solid rgba(0, 122, 204, 0.3)'
+                    border: '1px solid rgba(0, 122, 204, 0.3)',
                   }}
                 >
                   {session.metadata.totalMessages} messages
                 </span>
-                <span 
+                <span
                   className="px-2 py-1 rounded"
-                  style={{ 
-                    backgroundColor: 'rgba(0, 122, 204, 0.1)', 
+                  style={{
+                    backgroundColor: 'rgba(0, 122, 204, 0.1)',
                     color: '#969696',
-                    border: '1px solid rgba(0, 122, 204, 0.3)'
+                    border: '1px solid rgba(0, 122, 204, 0.3)',
                   }}
                 >
                   {session.metadata.toolCallCount} tool calls
@@ -221,18 +227,19 @@ function ViewerContent() {
             )}
           </div>
         </div>
-        
+
         {/* Chat Messages */}
         <div style={{ borderTop: '1px solid #3e3e42' }}>
-          {session?.messages.map((message, index) => (
-            <div key={message.id} style={{ borderBottom: index < session.messages.length - 1 ? '1px solid #3e3e42' : 'none' }}>
-              <ChatMessageComponent message={message} />
-            </div>
+          {session?.messages.map((message) => (
+            <ChatMessageComponent key={message.id} message={message} />
           ))}
         </div>
 
         {/* Footer */}
-        <div className="text-center py-8 text-sm" style={{ borderTop: '1px solid #3e3e42', color: '#969696' }}>
+        <div
+          className="text-center py-8 text-sm"
+          style={{ borderTop: '1px solid #3e3e42', color: '#969696' }}
+        >
           <p>End of conversation</p>
         </div>
       </div>
