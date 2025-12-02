@@ -599,4 +599,27 @@ describe('ChatReplayParser', () => {
     const assistantMessages = result.messages.filter((m) => m.role === 'assistant');
     expect(assistantMessages).toHaveLength(4);
   });
+
+  it('parses real remove-tests.chatreplay.json sample', () => {
+    const chatreplay = require('../../samples/remove-tests.chatreplay.json');
+
+    const result = parseChatReplayLog(JSON.stringify(chatreplay));
+
+    expect(result.messages.length).toBeGreaterThan(0);
+
+    const userMessages = result.messages.filter((m) => m.role === 'user');
+    const assistantMessages = result.messages.filter((m) => m.role === 'assistant');
+
+    expect(userMessages.length).toBeGreaterThan(0);
+    expect(assistantMessages.length).toBeGreaterThan(0);
+
+    // First user prompt should contain the remove-tests instruction from the sample
+    const firstUser = userMessages[0];
+    expect(firstUser.contentSegments[0].type).toBe('text');
+    if (firstUser.contentSegments[0].type === 'text') {
+      expect(firstUser.contentSegments[0].content).toContain(
+        'Remove tests that mention copilot_all_prompts_2025-12-02T08-45-36.chatreplay.json'
+      );
+    }
+  });
 });

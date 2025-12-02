@@ -30,7 +30,7 @@ describe('Uploaded file display in history', () => {
   });
 
   it('should display chatreplay.json filename in history', () => {
-    const filename = 'copilot_all_prompts_2025-12-02T08-45-36.chatreplay.json';
+    const filename = 'remove-tests.chatreplay.json';
     const truncated = truncateFilename(filename);
     
     addToHistory({
@@ -46,7 +46,7 @@ describe('Uploaded file display in history', () => {
   });
 
   it('should truncate long chatreplay.json filenames', () => {
-    const longFilename = 'copilot_all_prompts_2025-12-02T08-45-36.chatreplay.json';
+    const longFilename = 'a-very-long-sample-filename-used-for-testing-truncation.chatreplay.json';
     const truncated = truncateFilename(longFilename);
     
     // Should be truncated since default maxLength is 40
