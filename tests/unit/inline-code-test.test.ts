@@ -371,4 +371,224 @@ describe('Inline code blocks in messages', () => {
       }
     });
   });
+
+  describe('File path inlineReferences as markdown links', () => {
+    it('should render file paths with slashes as markdown links', () => {
+      const jsonLog = {
+        requesterUsername: 'digitarald',
+        responderUsername: 'GitHub Copilot',
+        requests: [
+          {
+            requestId: 'test-1',
+            message: {
+              text: 'What does this file do?',
+            },
+            response: [
+              {
+                value: 'The ',
+              },
+              {
+                kind: 'inlineReference',
+                inlineReference: {
+                  uri: { scheme: 'file', path: '/Users/test/src/components/ChatMessage.tsx' },
+                },
+                name: 'src/components/ChatMessage.tsx',
+              },
+              {
+                value: ' component renders chat messages.',
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = parseLog(JSON.stringify(jsonLog));
+
+      const assistantMessage = result.messages[1];
+      expect(assistantMessage.contentSegments).toHaveLength(1);
+
+      const textSegment = assistantMessage.contentSegments[0];
+      if (textSegment.type === 'text') {
+        // File paths should be rendered as markdown links
+        expect(textSegment.content).toBe(
+          'The [src/components/ChatMessage.tsx](src/components/ChatMessage.tsx) component renders chat messages.'
+        );
+      }
+    });
+
+    it('should render file paths with line numbers as markdown links', () => {
+      const jsonLog = {
+        requesterUsername: 'digitarald',
+        responderUsername: 'GitHub Copilot',
+        requests: [
+          {
+            requestId: 'test-1',
+            message: {
+              text: 'Check this line',
+            },
+            response: [
+              {
+                value: 'Look at ',
+              },
+              {
+                kind: 'inlineReference',
+                inlineReference: {
+                  uri: { scheme: 'file', path: '/Users/test/src/lib/parser/index.ts' },
+                },
+                name: 'src/lib/parser/index.ts#L42',
+              },
+              {
+                value: ' for the parsing logic.',
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = parseLog(JSON.stringify(jsonLog));
+
+      const assistantMessage = result.messages[1];
+      expect(assistantMessage.contentSegments).toHaveLength(1);
+
+      const textSegment = assistantMessage.contentSegments[0];
+      if (textSegment.type === 'text') {
+        // File paths with line numbers should be markdown links
+        expect(textSegment.content).toBe(
+          'Look at [src/lib/parser/index.ts#L42](src/lib/parser/index.ts#L42) for the parsing logic.'
+        );
+      }
+    });
+
+    it('should render file extensions like .tsx as markdown links even without slash', () => {
+      const jsonLog = {
+        requesterUsername: 'digitarald',
+        responderUsername: 'GitHub Copilot',
+        requests: [
+          {
+            requestId: 'test-1',
+            message: {
+              text: 'Check file',
+            },
+            response: [
+              {
+                value: 'See ',
+              },
+              {
+                kind: 'inlineReference',
+                inlineReference: {
+                  name: 'page.tsx',
+                },
+              },
+              {
+                value: ' for details.',
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = parseLog(JSON.stringify(jsonLog));
+
+      const assistantMessage = result.messages[1];
+      expect(assistantMessage.contentSegments).toHaveLength(1);
+
+      const textSegment = assistantMessage.contentSegments[0];
+      if (textSegment.type === 'text') {
+        // Single file names with extensions should be markdown links
+        expect(textSegment.content).toBe('See [page.tsx](page.tsx) for details.');
+      }
+    });
+
+    it('should keep simple variable names as inline code', () => {
+      const jsonLog = {
+        requesterUsername: 'digitarald',
+        responderUsername: 'GitHub Copilot',
+        requests: [
+          {
+            requestId: 'test-1',
+            message: {
+              text: 'Fix it',
+            },
+            response: [
+              {
+                value: 'The ',
+              },
+              {
+                kind: 'inlineReference',
+                inlineReference: {
+                  name: 'oldValue',
+                },
+              },
+              {
+                value: ' variable is undefined.',
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = parseLog(JSON.stringify(jsonLog));
+
+      const assistantMessage = result.messages[1];
+      expect(assistantMessage.contentSegments).toHaveLength(1);
+
+      const textSegment = assistantMessage.contentSegments[0];
+      if (textSegment.type === 'text') {
+        // Simple variable names should stay as inline code
+        expect(textSegment.content).toBe('The `oldValue` variable is undefined.');
+      }
+    });
+
+    it('should handle mixed file paths and variable names', () => {
+      const jsonLog = {
+        requesterUsername: 'digitarald',
+        responderUsername: 'GitHub Copilot',
+        requests: [
+          {
+            requestId: 'test-1',
+            message: {
+              text: 'Fix',
+            },
+            response: [
+              {
+                value: 'In ',
+              },
+              {
+                kind: 'inlineReference',
+                inlineReference: {
+                  uri: { scheme: 'file', path: '/src/utils.ts' },
+                },
+                name: 'src/utils.ts',
+              },
+              {
+                value: ', the ',
+              },
+              {
+                kind: 'inlineReference',
+                inlineReference: {
+                  name: 'formatDate',
+                },
+              },
+              {
+                value: ' function has a bug.',
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = parseLog(JSON.stringify(jsonLog));
+
+      const assistantMessage = result.messages[1];
+      expect(assistantMessage.contentSegments).toHaveLength(1);
+
+      const textSegment = assistantMessage.contentSegments[0];
+      if (textSegment.type === 'text') {
+        // Mix of file path (link) and function name (inline code)
+        expect(textSegment.content).toBe(
+          'In [src/utils.ts](src/utils.ts), the `formatDate` function has a bug.'
+        );
+      }
+    });
+  });
 });

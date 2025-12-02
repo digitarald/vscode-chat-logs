@@ -173,15 +173,30 @@ export class JsonLogParser {
 
     for (let i = 0; i < responseItems.length; i++) {
       const item = responseItems[i];
-      const itemData = item as { kind?: string; inlineReference?: { name?: string }; id?: string; metadata?: { vscodeReasoningDone?: boolean } };
+      const itemData = item as {
+        kind?: string;
+        inlineReference?: { name?: string };
+        id?: string;
+        metadata?: { vscodeReasoningDone?: boolean };
+      };
 
       // Skip metadata / structural items
-      const skipKinds = ['codeblockUri', 'textEditGroup', 'prepareToolInvocation', 'undoStop', 'mcpServersStarting'];
+      const skipKinds = [
+        'codeblockUri',
+        'textEditGroup',
+        'prepareToolInvocation',
+        'undoStop',
+        'mcpServersStarting',
+      ];
       if (itemData.kind && skipKinds.includes(itemData.kind)) continue;
 
       // Handle thinking items (AI reasoning/analysis)
       if (itemData.kind === 'thinking') {
-        const thinkingItem = item as { value?: string; id?: string; metadata?: { vscodeReasoningDone?: boolean } };
+        const thinkingItem = item as {
+          value?: string;
+          id?: string;
+          metadata?: { vscodeReasoningDone?: boolean };
+        };
         // Skip empty thinking items or "done" markers
         if (!thinkingItem.value || thinkingItem.metadata?.vscodeReasoningDone) continue;
         // Deduplicate by ID
@@ -198,10 +213,20 @@ export class JsonLogParser {
         continue;
       }
 
-      // Inline code references accumulate into text
+      // Inline file references - render as markdown links for file paths, backticks for code
       if (item.kind === 'inlineReference' && itemData.inlineReference) {
-        const refName = itemData.inlineReference.name || '';
-        if (refName) accumulatedText += `\`${refName}\``;
+        // Name can be at top level of item or inside inlineReference
+        const refName =
+          (item.name as string) || (itemData.inlineReference as Record<string, unknown>).name || '';
+        if (refName) {
+          // If it looks like a file path (contains / or file extension), render as link
+          // Otherwise render as inline code with backticks
+          if (refName.includes('/') || /\.\w+#?L?\d*$/.test(refName)) {
+            accumulatedText += `[${refName}](${refName})`;
+          } else {
+            accumulatedText += `\`${refName}\``;
+          }
+        }
         continue;
       }
 
@@ -214,7 +239,10 @@ export class JsonLogParser {
         const toolCallData = item as Record<string, unknown>;
         const toolCall = this.parseToolCallFromItem(toolCallData, toolCallResults, toolCallRounds);
         if (toolCall) {
-          if (toolCallData.toolId === 'copilot_multiReplaceString' || toolCallData.toolId === 'copilot_replaceString') {
+          if (
+            toolCallData.toolId === 'copilot_multiReplaceString' ||
+            toolCallData.toolId === 'copilot_replaceString'
+          ) {
             const fileEdits = this.collectFileEdits(responseItems, i + 1);
             if (fileEdits.length) toolCall.fileEdits = fileEdits;
           }
