@@ -4,6 +4,7 @@ import type {
   ContentSegment,
   TextSegment,
   CodeBlockSegment,
+  ThinkingSegment,
   ToolCall,
   ToolCallType,
   VariableData,
@@ -72,8 +73,6 @@ export class JsonLogParser {
       const data: JsonChatExport = JSON.parse(jsonText);
       const messages: ChatMessage[] = [];
 
-      let messageOrder = 0;
-
       for (const request of data.requests) {
         // User message
         if (request.message.text) {
@@ -84,7 +83,7 @@ export class JsonLogParser {
               {
                 type: 'text',
                 content: request.message.text,
-                order: messageOrder++,
+                order: 0,
               },
             ],
             variableData: this.parseVariableData(request.variableData),
@@ -104,19 +103,18 @@ export class JsonLogParser {
             };
           };
 
-            const toolCallResults = requestData.result?.metadata?.toolCallResults;
-            const toolCallRounds = requestData.result?.metadata?.toolCallRounds;
+          const toolCallResults = requestData.result?.metadata?.toolCallResults;
+          const toolCallRounds = requestData.result?.metadata?.toolCallRounds;
 
           const assistantMessage = this.parseResponse(
             request.requestId,
             request.response,
-            messageOrder,
+            0,
             toolCallResults,
             toolCallRounds
           );
           if (assistantMessage) {
             messages.push(assistantMessage);
-            messageOrder = assistantMessage.contentSegments.length;
           }
         }
       }
@@ -157,6 +155,9 @@ export class JsonLogParser {
     let accumulatedText = '';
     let lastTopLevelToolCall: ToolCall | null = null;
 
+    // Track thinking IDs to prevent duplicates
+    const seenThinkingIds = new Set<string>();
+
     const flushAccumulatedText = () => {
       if (!accumulatedText) return;
       const split = this.splitTextIntoSegments(accumulatedText);
@@ -172,11 +173,30 @@ export class JsonLogParser {
 
     for (let i = 0; i < responseItems.length; i++) {
       const item = responseItems[i];
-      const itemData = item as { kind?: string; inlineReference?: { name?: string } };
+      const itemData = item as { kind?: string; inlineReference?: { name?: string }; id?: string; metadata?: { vscodeReasoningDone?: boolean } };
 
       // Skip metadata / structural items
-      const skipKinds = ['codeblockUri', 'textEditGroup', 'prepareToolInvocation', 'undoStop'];
+      const skipKinds = ['codeblockUri', 'textEditGroup', 'prepareToolInvocation', 'undoStop', 'mcpServersStarting'];
       if (itemData.kind && skipKinds.includes(itemData.kind)) continue;
+
+      // Handle thinking items (AI reasoning/analysis)
+      if (itemData.kind === 'thinking') {
+        const thinkingItem = item as { value?: string; id?: string; metadata?: { vscodeReasoningDone?: boolean } };
+        // Skip empty thinking items or "done" markers
+        if (!thinkingItem.value || thinkingItem.metadata?.vscodeReasoningDone) continue;
+        // Deduplicate by ID
+        const thinkingId = thinkingItem.id;
+        if (thinkingId && seenThinkingIds.has(thinkingId)) continue;
+        if (thinkingId) seenThinkingIds.add(thinkingId);
+
+        flushAccumulatedText();
+        contentSegments.push({
+          type: 'thinking',
+          content: thinkingItem.value,
+          order: order++,
+        } as ThinkingSegment);
+        continue;
+      }
 
       // Inline code references accumulate into text
       if (item.kind === 'inlineReference' && itemData.inlineReference) {

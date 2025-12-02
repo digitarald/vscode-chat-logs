@@ -457,5 +457,126 @@ describe('JSON Parser', () => {
         expect(toolSegment.toolCall.action).toBe('Read the file');
       }
     });
+
+    it('should parse thinking segments from response items', () => {
+      const jsonLog = JSON.stringify({
+        requesterUsername: 'digitarald',
+        responderUsername: 'GitHub Copilot',
+        requests: [
+          {
+            requestId: 'req-1',
+            message: { text: 'Think about this' },
+            response: [
+              {
+                kind: 'thinking',
+                value: 'The user wants me to analyze the problem step by step.',
+                id: 'thinking-1',
+              },
+              {
+                value: 'Here is my response.',
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = parseJsonLog(jsonLog);
+      expect(result.messages).toHaveLength(2);
+      const assistantMsg = result.messages[1];
+      expect(assistantMsg.contentSegments.length).toBe(2);
+      
+      const thinkingSegment = assistantMsg.contentSegments[0];
+      expect(thinkingSegment.type).toBe('thinking');
+      if (thinkingSegment.type === 'thinking') {
+        expect(thinkingSegment.content).toBe('The user wants me to analyze the problem step by step.');
+      }
+      
+      const textSegment = assistantMsg.contentSegments[1];
+      expect(textSegment.type).toBe('text');
+    });
+
+    it('should deduplicate thinking segments by ID', () => {
+      const jsonLog = JSON.stringify({
+        requesterUsername: 'digitarald',
+        responderUsername: 'GitHub Copilot',
+        requests: [
+          {
+            requestId: 'req-1',
+            message: { text: 'Think about this' },
+            response: [
+              {
+                kind: 'thinking',
+                value: 'First thinking step.',
+                id: 'thinking-1',
+              },
+              {
+                kind: 'thinking',
+                value: 'First thinking step.', // Duplicate with same ID
+                id: 'thinking-1',
+              },
+              {
+                kind: 'thinking',
+                value: 'Second thinking step.', // Different ID
+                id: 'thinking-2',
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = parseJsonLog(jsonLog);
+      const assistantMsg = result.messages[1];
+      const thinkingSegments = assistantMsg.contentSegments.filter(seg => seg.type === 'thinking');
+      
+      expect(thinkingSegments.length).toBe(2);
+      if (thinkingSegments[0].type === 'thinking') {
+        expect(thinkingSegments[0].content).toBe('First thinking step.');
+      }
+      if (thinkingSegments[1].type === 'thinking') {
+        expect(thinkingSegments[1].content).toBe('Second thinking step.');
+      }
+    });
+
+    it('should skip empty thinking segments and done markers', () => {
+      const jsonLog = JSON.stringify({
+        requesterUsername: 'digitarald',
+        responderUsername: 'GitHub Copilot',
+        requests: [
+          {
+            requestId: 'req-1',
+            message: { text: 'Think about this' },
+            response: [
+              {
+                kind: 'thinking',
+                value: 'Actual thinking content.',
+                id: 'thinking-1',
+              },
+              {
+                kind: 'thinking',
+                value: '', // Empty - should be skipped
+                id: 'thinking-2',
+              },
+              {
+                kind: 'thinking',
+                value: '', // Done marker - should be skipped
+                id: '',
+                metadata: {
+                  vscodeReasoningDone: true,
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = parseJsonLog(jsonLog);
+      const assistantMsg = result.messages[1];
+      const thinkingSegments = assistantMsg.contentSegments.filter(seg => seg.type === 'thinking');
+      
+      expect(thinkingSegments.length).toBe(1);
+      if (thinkingSegments[0].type === 'thinking') {
+        expect(thinkingSegments[0].content).toBe('Actual thinking content.');
+      }
+    });
   });
 });

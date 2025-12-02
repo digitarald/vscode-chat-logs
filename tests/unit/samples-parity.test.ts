@@ -164,3 +164,58 @@ describe('sample structure – fix-deploy JSON', () => {
     expect(withEdits.length).toBeGreaterThan(0);
   });
 });
+
+describe('sample structure – thinking JSON', () => {
+  const samplesDir = path.join(process.cwd(), 'samples');
+  const thinkingJsonPath = path.join(samplesDir, 'thinking.json');
+
+  it('sample file exists', () => {
+    expect(fs.existsSync(thinkingJsonPath)).toBe(true);
+  });
+
+  const jsonText = fs.readFileSync(thinkingJsonPath, 'utf-8');
+  const parsed = parseLog(jsonText);
+
+  it('parses multiple conversation turns', () => {
+    expect(parsed.messages.length).toBeGreaterThan(2);
+    const userMessages = parsed.messages.filter((msg) => msg.role === 'user');
+    const assistantMessages = parsed.messages.filter((msg) => msg.role === 'assistant');
+    expect(userMessages.length).toBeGreaterThan(0);
+    expect(assistantMessages.length).toBeGreaterThan(0);
+  });
+
+  it('includes tool calls in assistant messages', () => {
+    const toolCalls = flattenToolCalls(parsed);
+    expect(toolCalls.length).toBeGreaterThan(0);
+  });
+
+  it('includes read and replace tool call types', () => {
+    const calls = flattenToolCalls(parsed);
+    expect(calls.some((c) => c.type === 'read')).toBe(true);
+    expect(calls.some((c) => c.type === 'replace')).toBe(true);
+  });
+
+  it('includes thinking segments in assistant messages', () => {
+    const assistantMessages = parsed.messages.filter((msg) => msg.role === 'assistant');
+    const thinkingSegments = assistantMessages.flatMap((msg) =>
+      msg.contentSegments.filter((seg) => seg.type === 'thinking')
+    );
+    expect(thinkingSegments.length).toBeGreaterThan(0);
+    // Verify thinking content is non-empty
+    thinkingSegments.forEach((seg) => {
+      if (seg.type === 'thinking') {
+        expect(seg.content.length).toBeGreaterThan(0);
+      }
+    });
+  });
+
+  it('maintains proper segment ordering', () => {
+    parsed.messages.forEach((msg) => {
+      const orders = msg.contentSegments.map((seg) => seg.order);
+      // Check that orders are sequential starting from 0
+      orders.forEach((order, index) => {
+        expect(order).toBe(index);
+      });
+    });
+  });
+});

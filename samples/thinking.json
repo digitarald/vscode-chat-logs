@@ -1,0 +1,2319 @@
+{
+  "responderUsername": "GitHub Copilot",
+  "responderAvatarIconUri": {
+    "id": "copilot"
+  },
+  "initialLocation": "panel",
+  "requests": [
+    {
+      "requestId": "request_e3d8766d-a4a3-431a-8466-fd3a87c30b49",
+      "message": {
+        "text": "Thinking boxes should be closed by defaults",
+        "parts": [
+          {
+            "range": {
+              "start": 0,
+              "endExclusive": 43
+            },
+            "editorRange": {
+              "startLineNumber": 1,
+              "startColumn": 1,
+              "endLineNumber": 1,
+              "endColumn": 44
+            },
+            "text": "Thinking boxes should be closed by defaults",
+            "kind": "text"
+          }
+        ]
+      },
+      "variableData": {
+        "variables": [
+          {
+            "value": "Repository name: vscode-chat-logs\nOwner: digitarald\nCurrent branch: main\nDefault branch: main",
+            "name": "digitarald/vscode-chat-logs",
+            "modelDescription": "Information about the current repository. You can use this information when you need to calculate diffs or compare changes with the default branch",
+            "id": "digitarald/vscode-chat-logs",
+            "kind": "workspace"
+          },
+          {
+            "id": "vscode.prompt.instructions.root__vscode-userdata:/Users/digitarald/Library/Application%20Support/Code%20-%20Insiders/User/prompts/frontend-dev.instructions.md",
+            "name": "prompt:frontend-dev.instructions.md",
+            "value": {
+              "$mid": 1,
+              "external": "vscode-userdata:/Users/digitarald/Library/Application%20Support/Code%20-%20Insiders/User/prompts/frontend-dev.instructions.md",
+              "path": "/Users/digitarald/Library/Application Support/Code - Insiders/User/prompts/frontend-dev.instructions.md",
+              "scheme": "vscode-userdata"
+            },
+            "kind": "promptFile",
+            "modelDescription": "Prompt instructions file",
+            "isRoot": true,
+            "originLabel": "Automatically attached as pattern is **",
+            "automaticallyAdded": true
+          },
+          {
+            "id": "vscode.prompt.instructions.root__file:///Users/digitarald/Developer/vscode-chat-logs/AGENTS.md",
+            "name": "prompt:AGENTS.md",
+            "value": {
+              "$mid": 1,
+              "external": "file:///Users/digitarald/Developer/vscode-chat-logs/AGENTS.md",
+              "path": "/Users/digitarald/Developer/vscode-chat-logs/AGENTS.md",
+              "scheme": "file"
+            },
+            "kind": "promptFile",
+            "modelDescription": "Prompt instructions file",
+            "isRoot": true,
+            "originLabel": "Automatically attached as setting chat.useAgentsMdFile is enabled",
+            "automaticallyAdded": true
+          },
+          {
+            "id": "vscode.prompt.instructions.text",
+            "name": "prompt:instructionsList",
+            "value": "<instructions>\nHere is a list of instruction files that contain rules for modifying or creating new code.\nThese files are important for ensuring that the code is modified or created correctly.\nPlease make sure to follow the rules specified in these files when working with the codebase.\nIf the file is not already available as attachment, use the #tool:readFile tool to acquire it.\nMake sure to acquire the instructions before making any changes to the code.\n<instruction>\n<description>Create distinctive, production-grade frontend interfaces with high design quality. Use this skill when the user asks to build web components, pages, or applications. Generates creative, polished code that avoids generic AI aesthetics.</description>\n<file>vscode-userdata:/Users/digitarald/Library/Application%20Support/Code%20-%20Insiders/User/prompts/frontend-dev.instructions.md</file>\n<applyTo>**</applyTo>\n</instruction>\n</instructions>\n\n\n<agents>\nHere is a list of agents that can be used when running a subagent.\nEach agent has optionally a description with the agent's purpose and expertise. When asked to run a subagent, choose the most appropriate agent from this list.\nUse the #tool:runSubagent tool with the agent name to run the subagent.\n<agent>\n<name>Brainstorm</name>\n<description>Brainstorm ideas from scratch</description>\n</agent>\n<agent>\n<name>Debug</name>\n</agent>\n<agent>\n<name>Explore-Solution</name>\n<description>Explore implementation ideas</description>\n</agent>\n<agent>\n<name>Flightplan</name>\n<description>Description of the custom chat mode.</description>\n</agent>\n<agent>\n<name>Implement</name>\n<description>Execute implementation</description>\n</agent>\n<agent>\n<name>PixelJam</name>\n<description>Design user interfaces quickly and iteratively in code.</description>\n<argumentHint>What should we design today?</argumentHint>\n</agent>\n<agent>\n<name>Research</name>\n<description>Research and define product specifications through collaborative discovery</description>\n</agent>\n<agent>\n<name>Sprint</name>\n</agent>\n<agent>\n<name>jupyter-analyst</name>\n<description>Describe what this custom agent does and when to use it.</description>\n</agent>\n<agent>\n<name>Plan</name>\n<description>Researches and outlines multi-step plans</description>\n<argumentHint>Outline the goal or problem to research</argumentHint>\n</agent>\n</agents>\n\n",
+            "kind": "promptText",
+            "modelDescription": "Prompt instructions list",
+            "automaticallyAdded": true,
+            "toolReferences": [
+              {
+                "kind": "tool",
+                "id": "copilot_readFile",
+                "name": "Read File",
+                "range": {
+                  "start": 347,
+                  "endExclusive": 361
+                }
+              },
+              {
+                "kind": "tool",
+                "id": "runSubagent",
+                "icon": {
+                  "id": "organization"
+                },
+                "name": "Run Subagent",
+                "range": {
+                  "start": 1173,
+                  "endExclusive": 1190
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "response": [
+        {
+          "kind": "mcpServersStarting",
+          "didStartServerIds": []
+        },
+        {
+          "kind": "thinking",
+          "value": "The user wants \"thinking boxes\" to be closed by default. This is a UI change related to how thinking/reasoning content is displayed. I need to gather context about how thinking boxes are currently implemented and their default state.",
+          "id": "2liA0cFOCtzcdm3sRYDJmpgqtjmZFrppx9vd5P0lEHQgdWkQlJX2RIcq3bPpqyYgT/DkFZKxCJTZ7rhDg74hQRuYU2vMjYsh6/qDwG+beg8LoKQs6YX2It2xAd1pYDVflY+LSngxlpUF/LPd3jDQJutMHomGDVJpmlR2tKAG+zjlWwAIeX4EwH/9OKw4Cqyd7Sq2qxX7VNaaShPUW0/BRzcnSk6k22VmEvk2MOoRsyBC0tpsuoSczbGtsayBlin2+aELxF7ogSyPncQaDfilhsqJiJEYcxpCHZimWSXBBhsX7/siVQXss1WujW8wLk0aeNhHjFePum/SYOwex4f5rj+bn2T44l0BX6PZT/xZi82EbVfj",
+          "generatedTitle": "User wanted thinking boxes closed by default"
+        },
+        {
+          "kind": "thinking",
+          "value": "",
+          "id": "UzhVJgxk9dT2ZK0aB2vItgFo9Z3aQza5j9gIqE9n/hDY62IzwGou0bj6QKU3luyA172+wH855Vnex6jXrEBNocIUER3tUe5RdNX87JcE/YKDUDg5iztcVn9J847gnoRA3M/uPDcggTRkiFr12ZAM/Pp+BI3uAiJkYRY/JG75BcNknnszpYJcyAKmk5CgXIfxRVj7XKpqiY7UKszoqHfY/680bE+c+bU0wvlge9Tk9SYmvNRU5khVESdGFVJheYOA485HeCn3aGGiZ4exflzvFL4QQB+Ixkz9cJ940aqjODfLk1rrdcY/KHufLGkST6KVRsstq0E/LwXmbcF/sgY1GnxqmaPLL2TvAQ1pyoNI6ZxR9W3P"
+        },
+        {
+          "kind": "thinking",
+          "value": "",
+          "id": "TYZirBSaopbnQfaJFHpNOrH6xwaonZmK0ATzNmxiepJKoLYQ+ACE0K74NhkCaVY49rLzptfFhjZXOAhOGAQqhqfN3vkyFR3e/sWIbCgk2U3LHRVif0kz9T9OPveelKDCKj3ENkc0l0ZMATTRsTJvrBebNdNgn0b/UKJ0koMsn6z/vGrHyeBcGmGj3G+wT+4Dheu2b5pXEs6gEugZb54B3DkVuliG8LIiryJhrJOcr6fAhIGbEqw2nUid2nIWxccSnQ5riMpY8FRlGO1xBz/uY+qqqO10bnb+P8bayo11xgi9c8lfppI0KvZTtmeTUQ3S+WM8Ti0AAUbsbJECMVMs7V4acHlhHdyjgWSnmY6VSj4f0m17N1D4AalJH1xraW8lf/fCd5QZiQRRaJ/dT3EVWhE+XhZDZwsm80iQubj1kXRL2+/Rth0tu/2470zYSXwc9/ZYQ1g47uqhqQeWPVwLDLUeEMREuvJbfU91H6LdolZt0Z9wmKfCkv3LAbAoROYieYbjpc0j672jJPM62fFtz1tNNdBl9Av0Qd7qxRkEWHfrF51QkjJKzzV3/fL1SBdEUM4T3ivadGD7bP0hdptHCxqaePiOUVyvvtT64wA9swTuRkPRUQB6y68IamdJiKIM6gE1m4qfWsByXSa5GCgqmRxmBQ32SkyY5LOgQ0QqP+nUWXhXpEaW0DQ9eVVi0V2axA20VaUNcXDM+u4QthCYW/+wWT1LUkafrtSs5PnVL97fIH21h/oQV1tngjjV7caeqs7H3ZdQSQ+R6Xnq334Ab5pWPbAILrb7hGfeoAPAhC8QHlO52Y5Tgv6u6Jm4nWmOgaeWAQULwv1ak7ZIxUlPAdXPHrYCKkDF2CM+Oi/G6chzMZgP4zs4NtEt3UChUSU+Abk0ensXvqDDM/nFC02Q16bo1vc5dHEARdvto5MSGEfRJlmhSUKwQuEKs5R3Um+yr30ZZvoFX27l5pM7QnMH14F4Uiir8vx8GZxIzCePHi0apBFay2yIsMb6SXJtG0QnQGUfbd4RlLMwad1YBc8kjLTyUTm6JGEqKQf1sOhOi0djrQj+X7zhFvwez/bUTIomxWZglg=="
+        },
+        {
+          "kind": "thinking",
+          "value": "",
+          "id": "",
+          "metadata": {
+            "vscodeReasoningDone": true,
+            "stopReason": "other"
+          }
+        },
+        {
+          "kind": "prepareToolInvocation",
+          "toolName": "runSubagent"
+        },
+        {
+          "kind": "toolInvocationSerialized",
+          "invocationMessage": "Research thinking boxes implementation",
+          "isConfirmed": {
+            "type": 1
+          },
+          "isComplete": true,
+          "source": {
+            "type": "internal",
+            "label": "Built-In"
+          },
+          "toolCallId": "4ee4a40e-72d5-4bdd-815f-b7602488bab8",
+          "toolId": "runSubagent"
+        },
+        {
+          "kind": "prepareToolInvocation",
+          "toolName": "copilot_findTextInFiles"
+        },
+        {
+          "kind": "toolInvocationSerialized",
+          "invocationMessage": {
+            "value": "Searching for text `thinking`",
+            "supportThemeIcons": false,
+            "supportHtml": false,
+            "supportAlertSyntax": false,
+            "uris": {}
+          },
+          "pastTenseMessage": {
+            "value": "Searched for text `thinking`, 20 results",
+            "supportThemeIcons": false,
+            "supportHtml": false,
+            "supportAlertSyntax": false,
+            "uris": {}
+          },
+          "isConfirmed": {
+            "type": 1
+          },
+          "isComplete": true,
+          "source": {
+            "type": "internal",
+            "label": "Built-In"
+          },
+          "resultDetails": [
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 55,
+                "startColumn": 11,
+                "endLineNumber": 55,
+                "endColumn": 19
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 71,
+                "startColumn": 9,
+                "endLineNumber": 71,
+                "endColumn": 17
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 87,
+                "startColumn": 3,
+                "endLineNumber": 87,
+                "endColumn": 11
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 129,
+                "startColumn": 18,
+                "endLineNumber": 129,
+                "endColumn": 26
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 130,
+                "startColumn": 19,
+                "endLineNumber": 130,
+                "endColumn": 27
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 144,
+                "startColumn": 26,
+                "endLineNumber": 144,
+                "endColumn": 34
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 147,
+                "startColumn": 24,
+                "endLineNumber": 147,
+                "endColumn": 32
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 154,
+                "startColumn": 45,
+                "endLineNumber": 154,
+                "endColumn": 53
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 155,
+                "startColumn": 34,
+                "endLineNumber": 155,
+                "endColumn": 42
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 157,
+                "startColumn": 29,
+                "endLineNumber": 157,
+                "endColumn": 37
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 157,
+                "startColumn": 53,
+                "endLineNumber": 157,
+                "endColumn": 61
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 158,
+                "startColumn": 59,
+                "endLineNumber": 158,
+                "endColumn": 67
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 159,
+                "startColumn": 28,
+                "endLineNumber": 159,
+                "endColumn": 36
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 159,
+                "startColumn": 47,
+                "endLineNumber": 159,
+                "endColumn": 55
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 159,
+                "startColumn": 63,
+                "endLineNumber": 159,
+                "endColumn": 71
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 161,
+                "startColumn": 34,
+                "endLineNumber": 161,
+                "endColumn": 42
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 162,
+                "startColumn": 47,
+                "endLineNumber": 162,
+                "endColumn": 55
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 165,
+                "startColumn": 29,
+                "endLineNumber": 165,
+                "endColumn": 37
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 166,
+                "startColumn": 31,
+                "endLineNumber": 166,
+                "endColumn": 39
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 166,
+                "startColumn": 47,
+                "endLineNumber": 166,
+                "endColumn": 55
+              }
+            }
+          ],
+          "toolCallId": "290dda76-903e-4c28-982a-eee1023d393b",
+          "toolId": "copilot_findTextInFiles",
+          "fromSubAgent": true
+        },
+        {
+          "kind": "toolInvocationSerialized",
+          "invocationMessage": {
+            "value": "Searching for regex `useState.*expand|expand.*useState`",
+            "supportThemeIcons": false,
+            "supportHtml": false,
+            "supportAlertSyntax": false,
+            "uris": {}
+          },
+          "pastTenseMessage": {
+            "value": "Searched for regex `useState.*expand|expand.*useState`, 6 results",
+            "supportThemeIcons": false,
+            "supportHtml": false,
+            "supportAlertSyntax": false,
+            "uris": {}
+          },
+          "isConfirmed": {
+            "type": 1
+          },
+          "isComplete": true,
+          "source": {
+            "type": "internal",
+            "label": "Built-In"
+          },
+          "resultDetails": [
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 10,
+                "startColumn": 12,
+                "endLineNumber": 10,
+                "endColumn": 47
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 66,
+                "startColumn": 16,
+                "endLineNumber": 66,
+                "endColumn": 55
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 115,
+                "startColumn": 12,
+                "endLineNumber": 115,
+                "endColumn": 47
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 119,
+                "startColumn": 22,
+                "endLineNumber": 119,
+                "endColumn": 67
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/samples/plan.json",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/samples/plan.json",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/samples/plan.json",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 3163,
+                "startColumn": 4158,
+                "endLineNumber": 3163,
+                "endColumn": 22930
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/samples/plan.json",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/samples/plan.json",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/samples/plan.json",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 3236,
+                "startColumn": 4158,
+                "endLineNumber": 3236,
+                "endColumn": 23843
+              }
+            }
+          ],
+          "toolCallId": "b250bf52-fac1-4c84-9afa-30ed81c6d84f",
+          "toolId": "copilot_findTextInFiles",
+          "fromSubAgent": true
+        },
+        {
+          "kind": "toolInvocationSerialized",
+          "invocationMessage": {
+            "value": "Searching for text `ContentSegment`",
+            "supportThemeIcons": false,
+            "supportHtml": false,
+            "supportAlertSyntax": false,
+            "uris": {}
+          },
+          "pastTenseMessage": {
+            "value": "Searched for text `ContentSegment`, 20 results",
+            "supportThemeIcons": false,
+            "supportHtml": false,
+            "supportAlertSyntax": false,
+            "uris": {}
+          },
+          "isConfirmed": {
+            "type": 1
+          },
+          "isComplete": true,
+          "source": {
+            "type": "internal",
+            "label": "Built-In"
+          },
+          "resultDetails": [
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 4,
+                "startColumn": 3,
+                "endLineNumber": 4,
+                "endColumn": 17
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 111,
+                "startColumn": 13,
+                "endLineNumber": 111,
+                "endColumn": 27
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 124,
+                "startColumn": 34,
+                "endLineNumber": 124,
+                "endColumn": 48
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 226,
+                "startColumn": 13,
+                "endLineNumber": 226,
+                "endColumn": 27
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/chatreplay-parser.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 358,
+                "startColumn": 35,
+                "endLineNumber": 358,
+                "endColumn": 49
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 50,
+                "startColumn": 31,
+                "endLineNumber": 50,
+                "endColumn": 45
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 51,
+                "startColumn": 31,
+                "endLineNumber": 51,
+                "endColumn": 45
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 52,
+                "startColumn": 31,
+                "endLineNumber": 52,
+                "endColumn": 45
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 58,
+                "startColumn": 31,
+                "endLineNumber": 58,
+                "endColumn": 45
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 59,
+                "startColumn": 31,
+                "endLineNumber": 59,
+                "endColumn": 45
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 60,
+                "startColumn": 31,
+                "endLineNumber": 60,
+                "endColumn": 45
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 94,
+                "startColumn": 31,
+                "endLineNumber": 94,
+                "endColumn": 45
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 95,
+                "startColumn": 31,
+                "endLineNumber": 95,
+                "endColumn": 45
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 97,
+                "startColumn": 41,
+                "endLineNumber": 97,
+                "endColumn": 55
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 132,
+                "startColumn": 41,
+                "endLineNumber": 132,
+                "endColumn": 55
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 185,
+                "startColumn": 31,
+                "endLineNumber": 185,
+                "endColumn": 45
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 186,
+                "startColumn": 31,
+                "endLineNumber": 186,
+                "endColumn": 45
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 187,
+                "startColumn": 31,
+                "endLineNumber": 187,
+                "endColumn": 45
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 188,
+                "startColumn": 31,
+                "endLineNumber": 188,
+                "endColumn": 45
+              }
+            },
+            {
+              "uri": {
+                "$mid": 1,
+                "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/tests/unit/chatreplay-parser.test.ts",
+                "scheme": "file"
+              },
+              "range": {
+                "startLineNumber": 216,
+                "startColumn": 41,
+                "endLineNumber": 216,
+                "endColumn": 55
+              }
+            }
+          ],
+          "toolCallId": "a93b8cb3-dfc0-4fef-a318-8fafc9b69cca",
+          "toolId": "copilot_findTextInFiles",
+          "fromSubAgent": true
+        },
+        {
+          "kind": "prepareToolInvocation",
+          "toolName": "copilot_readFile"
+        },
+        {
+          "kind": "toolInvocationSerialized",
+          "invocationMessage": {
+            "value": "Reading [](file:///Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx)",
+            "supportThemeIcons": false,
+            "supportHtml": false,
+            "supportAlertSyntax": false,
+            "uris": {
+              "file:///Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx": {
+                "$mid": 1,
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                "scheme": "file"
+              }
+            }
+          },
+          "pastTenseMessage": {
+            "value": "Read [](file:///Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx)",
+            "supportThemeIcons": false,
+            "supportHtml": false,
+            "supportAlertSyntax": false,
+            "uris": {
+              "file:///Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx": {
+                "$mid": 1,
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                "scheme": "file"
+              }
+            }
+          },
+          "isConfirmed": {
+            "type": 1
+          },
+          "isComplete": true,
+          "source": {
+            "type": "internal",
+            "label": "Built-In"
+          },
+          "toolCallId": "bbaf11af-4595-48ee-ad70-f0d294597be4",
+          "toolId": "copilot_readFile",
+          "fromSubAgent": true
+        },
+        {
+          "kind": "toolInvocationSerialized",
+          "invocationMessage": {
+            "value": "Reading [](file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/types.ts)",
+            "supportThemeIcons": false,
+            "supportHtml": false,
+            "supportAlertSyntax": false,
+            "uris": {
+              "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/types.ts": {
+                "$mid": 1,
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/types.ts",
+                "scheme": "file"
+              }
+            }
+          },
+          "pastTenseMessage": {
+            "value": "Read [](file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/types.ts)",
+            "supportThemeIcons": false,
+            "supportHtml": false,
+            "supportAlertSyntax": false,
+            "uris": {
+              "file:///Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/types.ts": {
+                "$mid": 1,
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/lib/parser/types.ts",
+                "scheme": "file"
+              }
+            }
+          },
+          "isConfirmed": {
+            "type": 1
+          },
+          "isComplete": true,
+          "source": {
+            "type": "internal",
+            "label": "Built-In"
+          },
+          "toolCallId": "4c643708-f17f-468f-a976-4a1233a1bbcf",
+          "toolId": "copilot_readFile",
+          "fromSubAgent": true
+        },
+        {
+          "value": "## Plan: Close Thinking Boxes by Default\n\nChange the `ThinkingItem` component's initial state from expanded to collapsed, so users see a compact view initially and can expand thinking content on demand.\n\n### Steps\n1. In ",
+          "supportThemeIcons": false,
+          "supportHtml": false,
+          "baseUri": {
+            "$mid": 1,
+            "path": "/Users/digitarald/Developer/vscode-chat-logs/",
+            "scheme": "file"
+          }
+        },
+        {
+          "kind": "inlineReference",
+          "name": "src/components/ChatMessage.tsx#L10",
+          "inlineReference": {
+            "uri": {
+              "$mid": 1,
+              "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+              "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+              "path": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+              "scheme": "file"
+            },
+            "range": {
+              "startLineNumber": 10,
+              "startColumn": 1,
+              "endLineNumber": 10,
+              "endColumn": 1
+            }
+          }
+        },
+        {
+          "value": ", change `useState(true)` to `useState(false)` in the `ThinkingItem` component's `isExpanded` state initialization.\n\n### Further Considerations\n1. Should all thinking boxes share a global expand/collapse state? Currently each instance manages its own state independently.\n2. Would you like an \"Expand All / Collapse All\" toggle for thinking boxes when there are multiple in a conversation?",
+          "supportThemeIcons": false,
+          "supportHtml": false,
+          "baseUri": {
+            "$mid": 1,
+            "path": "/Users/digitarald/Developer/vscode-chat-logs/",
+            "scheme": "file"
+          }
+        }
+      ],
+      "agent": {
+        "extensionId": {
+          "value": "GitHub.copilot-chat",
+          "_lower": "github.copilot-chat"
+        },
+        "extensionVersion": "0.34.2025120202",
+        "publisherDisplayName": "GitHub",
+        "extensionPublisherId": "GitHub",
+        "extensionDisplayName": "GitHub Copilot Chat",
+        "id": "github.copilot.editsAgent",
+        "description": "Edit files in your workspace in agent mode",
+        "when": "config.chat.agent.enabled",
+        "metadata": {
+          "themeIcon": {
+            "id": "tools"
+          },
+          "hasFollowups": false,
+          "supportIssueReporting": true
+        },
+        "name": "agent",
+        "fullName": "GitHub Copilot",
+        "isDefault": true,
+        "locations": [
+          "panel"
+        ],
+        "modes": [
+          "agent"
+        ],
+        "slashCommands": [
+          {
+            "name": "list"
+          }
+        ],
+        "disambiguation": []
+      },
+      "timestamp": 1764707493109,
+      "modelId": "copilot/claude-opus-4.5",
+      "responseId": "response_773eab6f-e06a-40ab-af5e-39e3de6a17bd",
+      "result": {
+        "timings": {
+          "firstProgress": 4238,
+          "totalElapsed": 42091
+        },
+        "metadata": {
+          "codeBlocks": [],
+          "renderedUserMessage": [
+            {
+              "type": 1,
+              "text": "<attachments>\n<attachment id=\"digitarald/vscode-chat-logs\">\nInformation about the current repository. You can use this information when you need to calculate diffs or compare changes with the default branch:\nRepository name: vscode-chat-logs\nOwner: digitarald\nCurrent branch: main\nDefault branch: main\n</attachment>\n\n</attachments>\n<context>\nThe current date is December 2, 2025.\n</context>\n<reminderInstructions>\nDo NOT create a new markdown file to document each change or summarize your work unless specifically requested by the user.\n\n</reminderInstructions>\n<userRequest>\nThinking boxes should be closed by defaults\n</userRequest>\n"
+            },
+            {
+              "type": 3,
+              "cacheType": "ephemeral"
+            }
+          ],
+          "renderedGlobalContext": [
+            {
+              "type": 1,
+              "text": "<environment_info>\nThe user's current OS is: macOS\n</environment_info>\n<workspace_info>\nI am working in a workspace with the following folders:\n- /Users/digitarald/Developer/vscode-chat-logs \nI am working in a workspace that has the following structure:\n```\nAGENTS.md\neslint.config.mjs\nLICENSE\nnext-env.d.ts\nnext.config.js\npackage.json\npostcss.config.mjs\nREADME.md\ntsconfig.json\nvitest.config.ts\npublic/\n\tmanifest.json\nsamples/\n\tcopilot_all_prompts_2025-12-02T08-45-36.chatreplay.json\n\tfix-deploy.json\n\tplan.json\n\tsmall.json\n\ttdd-review.json\nsrc/\n\tapp/\n\t\tglobals.css\n\t\tlayout.tsx\n\t\tpage.tsx\n\t\tview/\n\t\t\tpage.tsx\n\tcomponents/\n\t\tChatMessage.tsx\n\t\tFooter.tsx\n\t\tHistoryList.tsx\n\tlib/\n\t\texamples.ts\n\t\tgist-fetcher.ts\n\t\thistory.ts\n\t\tselect-log-file.ts\n\t\tparser/\n\t\t\tchatreplay-parser.ts\n\t\t\tformat-detector.ts\n\t\t\tindex.ts\n\t\t\tjson-parser.ts\n\t\t\ttypes.ts\ntests/\n\tsetup.ts\n\tunit/\n\t\tchat-message-selection.test.tsx\n\t\tchatreplay-parser.test.ts\n\t\tchatreplay-sample.test.ts\n\t\texamples.test.ts\n\t\tfix-deploy-order.test.ts\n\t\thistory.test.ts\n\t\tinline-code-test.test.ts\n\t\tjson-parser.test.ts\n\t\tjson-sample.test.ts\n\t\tjson-tool-types.test.ts\n\t\tmarkdown-test.test.ts\n\t\tparser.test.ts\n\t\tsamples-parity.test.ts\n\t\tsearch-replace.test.ts\n\t\tselect-log-file.test.ts\n\t\tsubagent-icon.test.tsx\n\t\tsubagent-io-dropdown.test.tsx\n\t\ttest-summary.test.ts\n\t\tuploaded-file-display.test.ts\n```\nThis is the state of the context at this point in the conversation. The view of the workspace structure may be truncated. You can use tools to collect more context if needed.\n</workspace_info>\n"
+            },
+            {
+              "type": 3,
+              "cacheType": "ephemeral"
+            }
+          ],
+          "cacheKey": "file:///Users/digitarald/Developer/vscode-chat-logs",
+          "toolCallRounds": [
+            {
+              "response": "",
+              "toolCalls": [
+                {
+                  "name": "runSubagent",
+                  "arguments": "{\"prompt\": \"Research how \\\"thinking boxes\\\" are implemented in this codebase. I need to understand:\\n\\n1. Where thinking content is rendered (likely in ChatMessage.tsx or similar component)\\n2. How the expand/collapse state is currently managed\\n3. What the current default state is (open or closed)\\n4. Any related types or props that control this behavior\\n\\nSearch for:\\n- \\\"thinking\\\" in the codebase\\n- Expand/collapse state management for content sections\\n- Any `useState` or state related to thinking visibility\\n- ContentSegment types that might include thinking\\n\\nReturn:\\n- File paths and line numbers where thinking boxes are implemented\\n- Current default state (expanded or collapsed)\\n- The state variable and toggle mechanism used\\n- Any relevant type definitions\", \"description\": \"Research thinking boxes implementation\"}",
+                  "id": "toolu_01QTn2VCqEwadc2rC1j2XjZe__vscode-1764707424920"
+                }
+              ],
+              "toolInputRetry": 0,
+              "id": "a9d07441-0d2d-457f-bb62-c823284d000b",
+              "thinking": {
+                "id": "TYZirBSaopbnQfaJFHpNOrH6xwaonZmK0ATzNmxiepJKoLYQ+ACE0K74NhkCaVY49rLzptfFhjZXOAhOGAQqhqfN3vkyFR3e/sWIbCgk2U3LHRVif0kz9T9OPveelKDCKj3ENkc0l0ZMATTRsTJvrBebNdNgn0b/UKJ0koMsn6z/vGrHyeBcGmGj3G+wT+4Dheu2b5pXEs6gEugZb54B3DkVuliG8LIiryJhrJOcr6fAhIGbEqw2nUid2nIWxccSnQ5riMpY8FRlGO1xBz/uY+qqqO10bnb+P8bayo11xgi9c8lfppI0KvZTtmeTUQ3S+WM8Ti0AAUbsbJECMVMs7V4acHlhHdyjgWSnmY6VSj4f0m17N1D4AalJH1xraW8lf/fCd5QZiQRRaJ/dT3EVWhE+XhZDZwsm80iQubj1kXRL2+/Rth0tu/2470zYSXwc9/ZYQ1g47uqhqQeWPVwLDLUeEMREuvJbfU91H6LdolZt0Z9wmKfCkv3LAbAoROYieYbjpc0j672jJPM62fFtz1tNNdBl9Av0Qd7qxRkEWHfrF51QkjJKzzV3/fL1SBdEUM4T3ivadGD7bP0hdptHCxqaePiOUVyvvtT64wA9swTuRkPRUQB6y68IamdJiKIM6gE1m4qfWsByXSa5GCgqmRxmBQ32SkyY5LOgQ0QqP+nUWXhXpEaW0DQ9eVVi0V2axA20VaUNcXDM+u4QthCYW/+wWT1LUkafrtSs5PnVL97fIH21h/oQV1tngjjV7caeqs7H3ZdQSQ+R6Xnq334Ab5pWPbAILrb7hGfeoAPAhC8QHlO52Y5Tgv6u6Jm4nWmOgaeWAQULwv1ak7ZIxUlPAdXPHrYCKkDF2CM+Oi/G6chzMZgP4zs4NtEt3UChUSU+Abk0ensXvqDDM/nFC02Q16bo1vc5dHEARdvto5MSGEfRJlmhSUKwQuEKs5R3Um+yr30ZZvoFX27l5pM7QnMH14F4Uiir8vx8GZxIzCePHi0apBFay2yIsMb6SXJtG0QnQGUfbd4RlLMwad1YBc8kjLTyUTm6JGEqKQf1sOhOi0djrQj+X7zhFvwez/bUTIomxWZglg==",
+                "text": "The user wants \"thinking boxes\" to be closed by default. This is a UI change related to how thinking/reasoning content is displayed. I need to gather context about how thinking boxes are currently implemented and their default state."
+              }
+            },
+            {
+              "response": "## Plan: Close Thinking Boxes by Default\n\nChange the `ThinkingItem` component's initial state from expanded to collapsed, so users see a compact view initially and can expand thinking content on demand.\n\n### Steps\n1. In [ChatMessage.tsx](src/components/ChatMessage.tsx#L10), change `useState(true)` to `useState(false)` in the `ThinkingItem` component's `isExpanded` state initialization.\n\n### Further Considerations\n1. Should all thinking boxes share a global expand/collapse state? Currently each instance manages its own state independently.\n2. Would you like an \"Expand All / Collapse All\" toggle for thinking boxes when there are multiple in a conversation?",
+              "toolCalls": [],
+              "toolInputRetry": 0,
+              "id": "7817bd8c-2635-42ae-88f9-41e0041d6d36"
+            }
+          ],
+          "toolCallResults": {
+            "toolu_01QTn2VCqEwadc2rC1j2XjZe__vscode-1764707424920": {
+              "$mid": 20,
+              "content": [
+                {
+                  "$mid": 21,
+                  "value": "I now have all the information needed. Here's a comprehensive summary of how \"thinking boxes\" are implemented:\n\n## Thinking Boxes Implementation Summary\n\n### 1. Where Thinking Content is Rendered\n\n**File:** \n\nThe thinking box UI is rendered by the  component ([lines 9-57](src/components/ChatMessage.tsx#L9-L57)):\n\n```tsx\nfunction ThinkingItem({ content }: { content: string }) {\n  const [isExpanded, setIsExpanded] = useState(true);\n  // ...\n}\n```\n\nIt's invoked in the main rendering loop at :\n```tsx\n} else if (segment.type === 'thinking') {\n  const prevType = idx > 0 ? message.contentSegments[idx - 1]?.type : null;\n  const addMargin = prevType === 'text' || prevType === 'tool_call';\n  return (\n    <div key={idx} className={addMargin ? 'mt-3' : 'mt-2'}>\n      <ThinkingItem content={segment.content} />\n    </div>\n  );\n}\n```\n\n### 2. Expand/Collapse State Management\n\n**State variable:**   \n**Location:** \n\n```tsx\nconst [isExpanded, setIsExpanded] = useState(true);\n```\n\n**Toggle mechanism:** Button click handler at :\n```tsx\nonClick={() => setIsExpanded(!isExpanded)}\n```\n\n### 3. Current Default State\n\n**Default: EXPANDED (`true`)**\n\nThe thinking box is **open by default** -  means thinking content is visible when first rendered.\n\n### 4. Related Types\n\n**File:** \n\n| Type | Location | Description |\n|------|----------|-------------|\n|  |  |  |\n|  |  | Interface with , ,  |\n|  |  | Union type including  |\n\n### 5. How Thinking Data is Parsed\n\n**File:** \n\nThinking segments are parsed from request messages ([lines 144-166](src/lib/parser/chatreplay-parser.ts#L144-L166)):\n- Looks for items with  and \n- Uses  Set to deduplicate thinking entries\n- Creates segments with  and \n\n### Summary Table\n\n| Aspect | Details |\n|--------|---------|\n| **Component** |  in  |\n| **State variable** |  |\n| **Default state** | `true` (expanded/open) |\n| **Toggle** |  on button click |\n| **Type definition** |  in  |\n| **Visual indicator** | `▼` when expanded, `▶` when collapsed |\n| **Icon** | 🧠 (brain emoji) |"
+                }
+              ]
+            }
+          },
+          "modelMessageId": "e3385248-de27-47a6-8721-eaf454cbce5e",
+          "responseId": "9c114134-f40a-46c0-a8e4-b7dcf25828e9",
+          "sessionId": "0acec4b6-22d5-4e95-a4be-ce833d72d299",
+          "agentId": "github.copilot.editsAgent"
+        },
+        "details": "Claude Opus 4.5 (Preview) • 1x"
+      },
+      "responseMarkdownInfo": [],
+      "followups": [],
+      "modelState": {
+        "value": 1,
+        "completedAt": 1764707535208
+      },
+      "contentReferences": [
+        {
+          "kind": "reference",
+          "reference": {
+            "$mid": 1,
+            "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/AGENTS.md",
+            "external": "file:///Users/digitarald/Developer/vscode-chat-logs/AGENTS.md",
+            "path": "/Users/digitarald/Developer/vscode-chat-logs/AGENTS.md",
+            "scheme": "file"
+          }
+        },
+        {
+          "kind": "reference",
+          "reference": {
+            "$mid": 1,
+            "fsPath": "/Users/digitarald/Library/Application Support/Code - Insiders/User/prompts/frontend-dev.instructions.md",
+            "external": "vscode-userdata:/Users/digitarald/Library/Application%20Support/Code%20-%20Insiders/User/prompts/frontend-dev.instructions.md",
+            "path": "/Users/digitarald/Library/Application Support/Code - Insiders/User/prompts/frontend-dev.instructions.md",
+            "scheme": "vscode-userdata"
+          }
+        }
+      ],
+      "codeCitations": [],
+      "timeSpentWaiting": 0
+    },
+    {
+      "requestId": "request_6c680349-16c3-46e5-912f-1ca7aa524433",
+      "message": {
+        "text": "Start implementation",
+        "parts": [
+          {
+            "range": {
+              "start": 0,
+              "endExclusive": 20
+            },
+            "editorRange": {
+              "startLineNumber": 1,
+              "startColumn": 1,
+              "endLineNumber": 1,
+              "endColumn": 21
+            },
+            "text": "Start implementation",
+            "kind": "text"
+          }
+        ]
+      },
+      "variableData": {
+        "variables": [
+          {
+            "value": "Repository name: vscode-chat-logs\nOwner: digitarald\nCurrent branch: main\nDefault branch: main",
+            "name": "digitarald/vscode-chat-logs",
+            "modelDescription": "Information about the current repository. You can use this information when you need to calculate diffs or compare changes with the default branch",
+            "id": "digitarald/vscode-chat-logs",
+            "kind": "workspace"
+          },
+          {
+            "id": "vscode.prompt.instructions.root__vscode-userdata:/Users/digitarald/Library/Application%20Support/Code%20-%20Insiders/User/prompts/frontend-dev.instructions.md",
+            "name": "prompt:frontend-dev.instructions.md",
+            "value": {
+              "$mid": 1,
+              "external": "vscode-userdata:/Users/digitarald/Library/Application%20Support/Code%20-%20Insiders/User/prompts/frontend-dev.instructions.md",
+              "path": "/Users/digitarald/Library/Application Support/Code - Insiders/User/prompts/frontend-dev.instructions.md",
+              "scheme": "vscode-userdata"
+            },
+            "kind": "promptFile",
+            "modelDescription": "Prompt instructions file",
+            "isRoot": true,
+            "originLabel": "Automatically attached as pattern is **",
+            "automaticallyAdded": true
+          },
+          {
+            "id": "vscode.prompt.instructions.root__file:///Users/digitarald/Developer/vscode-chat-logs/AGENTS.md",
+            "name": "prompt:AGENTS.md",
+            "value": {
+              "$mid": 1,
+              "external": "file:///Users/digitarald/Developer/vscode-chat-logs/AGENTS.md",
+              "path": "/Users/digitarald/Developer/vscode-chat-logs/AGENTS.md",
+              "scheme": "file"
+            },
+            "kind": "promptFile",
+            "modelDescription": "Prompt instructions file",
+            "isRoot": true,
+            "originLabel": "Automatically attached as setting chat.useAgentsMdFile is enabled",
+            "automaticallyAdded": true
+          },
+          {
+            "id": "vscode.prompt.instructions.text",
+            "name": "prompt:instructionsList",
+            "value": "<instructions>\nHere is a list of instruction files that contain rules for modifying or creating new code.\nThese files are important for ensuring that the code is modified or created correctly.\nPlease make sure to follow the rules specified in these files when working with the codebase.\nIf the file is not already available as attachment, use the #tool:readFile tool to acquire it.\nMake sure to acquire the instructions before making any changes to the code.\n<instruction>\n<description>Create distinctive, production-grade frontend interfaces with high design quality. Use this skill when the user asks to build web components, pages, or applications. Generates creative, polished code that avoids generic AI aesthetics.</description>\n<file>vscode-userdata:/Users/digitarald/Library/Application%20Support/Code%20-%20Insiders/User/prompts/frontend-dev.instructions.md</file>\n<applyTo>**</applyTo>\n</instruction>\n</instructions>\n\n\n<agents>\nHere is a list of agents that can be used when running a subagent.\nEach agent has optionally a description with the agent's purpose and expertise. When asked to run a subagent, choose the most appropriate agent from this list.\nUse the #tool:runSubagent tool with the agent name to run the subagent.\n<agent>\n<name>Brainstorm</name>\n<description>Brainstorm ideas from scratch</description>\n</agent>\n<agent>\n<name>Debug</name>\n</agent>\n<agent>\n<name>Explore-Solution</name>\n<description>Explore implementation ideas</description>\n</agent>\n<agent>\n<name>Flightplan</name>\n<description>Description of the custom chat mode.</description>\n</agent>\n<agent>\n<name>Implement</name>\n<description>Execute implementation</description>\n</agent>\n<agent>\n<name>PixelJam</name>\n<description>Design user interfaces quickly and iteratively in code.</description>\n<argumentHint>What should we design today?</argumentHint>\n</agent>\n<agent>\n<name>Research</name>\n<description>Research and define product specifications through collaborative discovery</description>\n</agent>\n<agent>\n<name>Sprint</name>\n</agent>\n<agent>\n<name>jupyter-analyst</name>\n<description>Describe what this custom agent does and when to use it.</description>\n</agent>\n<agent>\n<name>Plan</name>\n<description>Researches and outlines multi-step plans</description>\n<argumentHint>Outline the goal or problem to research</argumentHint>\n</agent>\n</agents>\n\n",
+            "kind": "promptText",
+            "modelDescription": "Prompt instructions list",
+            "automaticallyAdded": true,
+            "toolReferences": [
+              {
+                "kind": "tool",
+                "id": "copilot_readFile",
+                "name": "Read File",
+                "range": {
+                  "start": 347,
+                  "endExclusive": 361
+                }
+              },
+              {
+                "kind": "tool",
+                "id": "runSubagent",
+                "icon": {
+                  "id": "organization"
+                },
+                "name": "Run Subagent",
+                "range": {
+                  "start": 1173,
+                  "endExclusive": 1190
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "response": [
+        {
+          "kind": "mcpServersStarting",
+          "didStartServerIds": []
+        },
+        {
+          "kind": "thinking",
+          "value": "The user wants me to implement the change to make thinking boxes closed by default. I need to change useState(true) to useState(false) in the ThinkingItem component.",
+          "id": "NRehSdPNWMNBihMGxSH6gFEgc/5HyrfA2XdJoqLnhJJffcURz51TsYKg7uMv/rv5K2IvEmGuCA9SjXPy1Fibai+Ml/8IOXSJH4gStFDoT9dandzrEG5GhrRe6DcKRqEjtR/lN2gTjgGHY8PZjNP1QhTOAcj2oT5g0jRe+gk819hGni3peOtvUDCnCHyNNK2L9eJCtbZWo6IT9XlaTFid+Poc3hGb2T1kzONS/s6hOLyKwed5nr/IYc0Fi3MTqWdxnRF0g7PtVg21JJFQ/YO1dHiBP+Fnex8vvsKHaDeK7c6/KwAwNdVtf9slYjryHmg0zLEPo4E3Rx8REjmU32mLvwk7qL53clHI11/5WjMImULB9Kxo",
+          "generatedTitle": "Read [](file:///Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx#1-1), lines 1 to 31"
+        },
+        {
+          "kind": "thinking",
+          "value": "",
+          "id": "JfULd374UEZp5x/nCUXVNXbLAvK6CPXMxv/J6v8gnXLUYNhQLPbuH/sufaog8AIDJ3CGHGkCPDJR/iTSBLr1nfMBbD4cVyBC1Hzjnd3TN3TIKd8EIU99wLzp/gJDs6mT26QhYacaHJPNx2Ove1MXb1UVztyQFX71oWBYv3hlyLhu/tBSXXUB9GPwqy6CzpwfPYBqoYJoSbzyAxYkG07V4INsMhLSoNZiZTwUVLtPL/f6upMCA8IRrRrIlhBx+zgwKdyarHSrRxjR6YZIJlPdzrJGeSv4Ku6P5gxA822429Cz/EtYc0k8hck7u6Vcw4zYRboIhW1SiBOlwSUQEYjIgMukjk2lBk8JIb4PAgl5c6GIUdLE"
+        },
+        {
+          "kind": "thinking",
+          "value": "",
+          "id": "mKT0k3vXMaIYIRifJ4YIkEAMXTKGqTh1gF9QnLx+0UHlqr/vY4bUbyd8Q/uABhbxSkDaWrjEYQ+aD0xfo3uh3OZ7nIbqd6dKRt/fbUAYsRYb/1rjYdDEroXLQrxIcABfAdyS7NxLh7kUzQQJsdYrrLWvhxmSvCGQGv1dW/NWY63lrclrTs7ZE7uUiGlSqCwOzh9AU2D2Rly1H1U6ToxzjfY5bfoRWXY0L2MBNJrVZ5z9efi7o2U3aPjpJcLCEp2XLZ8HofoIGbsPhq+uXjrUaasKdYww4VYcFvdiFYXXMK5NRyK9oniQE6iWBgUYvvCBd/nC/UJwq0RemqZnczlENj/wpJhiAZc/1EORL+6V8/2gDX7wBeSe2MMewkLJwM0mNEX4Mdds6K12R9hP2YJqIcX2PUW+URdHG33BDXyP8Gu49dm+04tZpnpDeS7kSdk5vNO23vpyXbkAMedXSAab71QTf9fajcxs2GoSegpHHzTM1BJIHWAgOzpHoF4Wa0ioAwYrpjC7PDYW62eIoMycWe7TSNYFFmVnzdXHY86vI6zvBNNfZobjnEFrFCHBK0tI4R6bujPdtIA1dcJrwp1lhWTwHwLOnSzl4oUXf4nFxVfgPeo/biraBtmxc2Ul4didBLjd6iYgGznJU4F2jN5tYYdMjn6lNGmMTF2pX1M7AAD7onRsKGyw8nyCCJDOZtSuuLf/8qlLF7FCAtZhyObkNJPywEbCkTuofcavDg7C+yvKpD2R/8/6I2drj76i6BLtHvwa/ZyKL6nuwcIbuOFSdpiC1HFdiu2stbwrRw/XifG/3Jnsxu2ik+RsGQD5JdDUdJyiE6vN8WfJaCM+X9ykzys8CxgjW/OYP7V1BipXAOmTOBLoWpWZcWfNvolG/9Xt+jlHLbLMoVV7TF3uBa7S7aOBAzHgW7jti7lxgDhLUrReXLYAVZqpb7M3BWYiQQCLzogvYTL6DMQ="
+        },
+        {
+          "kind": "thinking",
+          "value": "",
+          "id": "",
+          "metadata": {
+            "vscodeReasoningDone": true,
+            "stopReason": "other"
+          }
+        },
+        {
+          "kind": "prepareToolInvocation",
+          "toolName": "copilot_readFile"
+        },
+        {
+          "kind": "toolInvocationSerialized",
+          "invocationMessage": {
+            "value": "Reading [](file:///Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx#1-1), lines 1 to 31",
+            "supportThemeIcons": false,
+            "supportHtml": false,
+            "supportAlertSyntax": false,
+            "uris": {
+              "file:///Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx#1-1": {
+                "$mid": 1,
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                "scheme": "file",
+                "fragment": "1-1"
+              }
+            }
+          },
+          "pastTenseMessage": {
+            "value": "Read [](file:///Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx#1-1), lines 1 to 31",
+            "supportThemeIcons": false,
+            "supportHtml": false,
+            "supportAlertSyntax": false,
+            "uris": {
+              "file:///Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx#1-1": {
+                "$mid": 1,
+                "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx#1-1",
+                "path": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                "scheme": "file",
+                "fragment": "1-1"
+              }
+            }
+          },
+          "isConfirmed": {
+            "type": 1
+          },
+          "isComplete": true,
+          "source": {
+            "type": "internal",
+            "label": "Built-In"
+          },
+          "toolCallId": "cff70606-e488-45f7-b342-42d307929e31",
+          "toolId": "copilot_readFile"
+        },
+        {
+          "kind": "prepareToolInvocation",
+          "toolName": "copilot_replaceString"
+        },
+        {
+          "kind": "toolInvocationSerialized",
+          "presentation": "hidden",
+          "invocationMessage": "Using \"Replace String in File\"",
+          "isConfirmed": {
+            "type": 1
+          },
+          "isComplete": true,
+          "source": {
+            "type": "internal",
+            "label": "Built-In"
+          },
+          "toolCallId": "c0a351e5-c658-4c52-9a6a-19c071f86b42",
+          "toolId": "copilot_replaceString"
+        },
+        {
+          "value": "\n```\n",
+          "supportThemeIcons": false,
+          "supportHtml": false,
+          "supportAlertSyntax": false,
+          "uris": {}
+        },
+        {
+          "id": "db311333-5a9f-466c-b6f1-d1d46c00c590",
+          "kind": "undoStop"
+        },
+        {
+          "kind": "codeblockUri",
+          "uri": {
+            "$mid": 1,
+            "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+            "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+            "path": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+            "scheme": "file"
+          },
+          "isEdit": true
+        },
+        {
+          "kind": "textEditGroup",
+          "uri": {
+            "$mid": 1,
+            "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+            "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+            "path": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+            "scheme": "file"
+          },
+          "edits": [
+            [
+              {
+                "text": "fals",
+                "range": {
+                  "startLineNumber": 10,
+                  "startColumn": 48,
+                  "endLineNumber": 10,
+                  "endColumn": 51
+                }
+              }
+            ],
+            []
+          ],
+          "done": true
+        },
+        {
+          "value": "\n```\n",
+          "supportThemeIcons": false,
+          "supportHtml": false,
+          "supportAlertSyntax": false,
+          "uris": {}
+        },
+        {
+          "value": "Done! Thinking boxes now default to collapsed. Users can click to expand them when they want to see the AI reasoning content.",
+          "supportThemeIcons": false,
+          "supportHtml": false,
+          "baseUri": {
+            "$mid": 1,
+            "path": "/Users/digitarald/Developer/vscode-chat-logs/",
+            "scheme": "file"
+          }
+        }
+      ],
+      "agent": {
+        "extensionId": {
+          "value": "GitHub.copilot-chat",
+          "_lower": "github.copilot-chat"
+        },
+        "extensionVersion": "0.34.2025120202",
+        "publisherDisplayName": "GitHub",
+        "extensionPublisherId": "GitHub",
+        "extensionDisplayName": "GitHub Copilot Chat",
+        "id": "github.copilot.editsAgent",
+        "description": "Edit files in your workspace in agent mode",
+        "when": "config.chat.agent.enabled",
+        "metadata": {
+          "themeIcon": {
+            "id": "tools"
+          },
+          "hasFollowups": false,
+          "supportIssueReporting": true
+        },
+        "name": "agent",
+        "fullName": "GitHub Copilot",
+        "isDefault": true,
+        "locations": [
+          "panel"
+        ],
+        "modes": [
+          "agent"
+        ],
+        "slashCommands": [
+          {
+            "name": "list"
+          }
+        ],
+        "disambiguation": []
+      },
+      "timestamp": 1764707552315,
+      "modelId": "copilot/claude-opus-4.5",
+      "responseId": "response_92d59129-1812-42ad-bde4-271ac6af2f64",
+      "result": {
+        "timings": {
+          "firstProgress": 4547,
+          "totalElapsed": 17070
+        },
+        "metadata": {
+          "codeBlocks": [],
+          "renderedUserMessage": [
+            {
+              "type": 1,
+              "text": "<attachments>\n<attachment id=\"digitarald/vscode-chat-logs\">\nInformation about the current repository. You can use this information when you need to calculate diffs or compare changes with the default branch:\nRepository name: vscode-chat-logs\nOwner: digitarald\nCurrent branch: main\nDefault branch: main\n</attachment>\n\n</attachments>\n<context>\nThe current date is December 2, 2025.\nTerminals:\nTerminal: node\nTerminal: zsh\nTerminal: zsh\n<todoList>\nError: todoList is required for write operation\n</todoList>\n\n</context>\n<reminderInstructions>\nWhen using the replace_string_in_file tool, include 3-5 lines of unchanged code before and after the string you want to replace, to make it unambiguous which part of the file should be edited.\nFor maximum efficiency, whenever you plan to perform multiple independent edit operations, invoke them simultaneously using multi_replace_string_in_file tool rather than sequentially. This will greatly improve user's cost and time efficiency leading to a better user experience. Do not announce which tool you're using (for example, avoid saying \"I'll implement all the changes using multi_replace_string_in_file\").\nDo NOT create a new markdown file to document each change or summarize your work unless specifically requested by the user.\n\n</reminderInstructions>\n<userRequest>\nStart implementation\n</userRequest>\n"
+            },
+            {
+              "type": 3,
+              "cacheType": "ephemeral"
+            }
+          ],
+          "toolCallRounds": [
+            {
+              "response": "",
+              "toolCalls": [
+                {
+                  "name": "read_file",
+                  "arguments": "{\"filePath\": \"/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx\", \"limit\": 30}",
+                  "id": "toolu_01RTentHDurTwyRHteKL1b8Z__vscode-1764707424926"
+                }
+              ],
+              "toolInputRetry": 0,
+              "id": "def142c0-30e3-423a-b213-65c9f2d1b2a5",
+              "thinking": {
+                "id": "mKT0k3vXMaIYIRifJ4YIkEAMXTKGqTh1gF9QnLx+0UHlqr/vY4bUbyd8Q/uABhbxSkDaWrjEYQ+aD0xfo3uh3OZ7nIbqd6dKRt/fbUAYsRYb/1rjYdDEroXLQrxIcABfAdyS7NxLh7kUzQQJsdYrrLWvhxmSvCGQGv1dW/NWY63lrclrTs7ZE7uUiGlSqCwOzh9AU2D2Rly1H1U6ToxzjfY5bfoRWXY0L2MBNJrVZ5z9efi7o2U3aPjpJcLCEp2XLZ8HofoIGbsPhq+uXjrUaasKdYww4VYcFvdiFYXXMK5NRyK9oniQE6iWBgUYvvCBd/nC/UJwq0RemqZnczlENj/wpJhiAZc/1EORL+6V8/2gDX7wBeSe2MMewkLJwM0mNEX4Mdds6K12R9hP2YJqIcX2PUW+URdHG33BDXyP8Gu49dm+04tZpnpDeS7kSdk5vNO23vpyXbkAMedXSAab71QTf9fajcxs2GoSegpHHzTM1BJIHWAgOzpHoF4Wa0ioAwYrpjC7PDYW62eIoMycWe7TSNYFFmVnzdXHY86vI6zvBNNfZobjnEFrFCHBK0tI4R6bujPdtIA1dcJrwp1lhWTwHwLOnSzl4oUXf4nFxVfgPeo/biraBtmxc2Ul4didBLjd6iYgGznJU4F2jN5tYYdMjn6lNGmMTF2pX1M7AAD7onRsKGyw8nyCCJDOZtSuuLf/8qlLF7FCAtZhyObkNJPywEbCkTuofcavDg7C+yvKpD2R/8/6I2drj76i6BLtHvwa/ZyKL6nuwcIbuOFSdpiC1HFdiu2stbwrRw/XifG/3Jnsxu2ik+RsGQD5JdDUdJyiE6vN8WfJaCM+X9ykzys8CxgjW/OYP7V1BipXAOmTOBLoWpWZcWfNvolG/9Xt+jlHLbLMoVV7TF3uBa7S7aOBAzHgW7jti7lxgDhLUrReXLYAVZqpb7M3BWYiQQCLzogvYTL6DMQ=",
+                "text": "The user wants me to implement the change to make thinking boxes closed by default. I need to change useState(true) to useState(false) in the ThinkingItem component."
+              }
+            },
+            {
+              "response": "",
+              "toolCalls": [
+                {
+                  "name": "replace_string_in_file",
+                  "arguments": "{\"filePath\": \"/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx\", \"oldString\": \"'use client';\\n\\nimport { useState } from 'react';\\nimport ReactMarkdown from 'react-markdown';\\nimport remarkGfm from 'remark-gfm';\\nimport type { ChatMessage, ToolCall } from '@/lib/parser/types';\\n\\n// Thinking Component for displaying AI reasoning\\nfunction ThinkingItem({ content }: { content: string }) {\\n  const [isExpanded, setIsExpanded] = useState(true);\", \"newString\": \"'use client';\\n\\nimport { useState } from 'react';\\nimport ReactMarkdown from 'react-markdown';\\nimport remarkGfm from 'remark-gfm';\\nimport type { ChatMessage, ToolCall } from '@/lib/parser/types';\\n\\n// Thinking Component for displaying AI reasoning\\nfunction ThinkingItem({ content }: { content: string }) {\\n  const [isExpanded, setIsExpanded] = useState(false);\"}",
+                  "id": "toolu_015CxUxg3Jodmz9egEYZnDCh__vscode-1764707424927"
+                }
+              ],
+              "toolInputRetry": 0,
+              "id": "b77fd82f-f37e-4529-a656-10cc73828faf"
+            },
+            {
+              "response": "Done! Thinking boxes now default to collapsed. Users can click to expand them when they want to see the AI reasoning content.",
+              "toolCalls": [],
+              "toolInputRetry": 0,
+              "id": "57d1cc35-1f86-4e98-a07d-71298a60a8ef"
+            }
+          ],
+          "toolCallResults": {
+            "toolu_01RTentHDurTwyRHteKL1b8Z__vscode-1764707424926": {
+              "$mid": 20,
+              "content": [
+                {
+                  "$mid": 23,
+                  "value": {
+                    "node": {
+                      "type": 1,
+                      "ctor": 2,
+                      "ctorName": "Fge",
+                      "children": [
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": "File: `",
+                          "lineBreakBefore": false
+                        },
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                          "lineBreakBefore": false
+                        },
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": "`. Lines ",
+                          "lineBreakBefore": false
+                        },
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": "1",
+                          "lineBreakBefore": false
+                        },
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": " to ",
+                          "lineBreakBefore": false
+                        },
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": "31",
+                          "lineBreakBefore": false
+                        },
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": " (",
+                          "lineBreakBefore": false
+                        },
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": "816",
+                          "lineBreakBefore": false
+                        },
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": " lines total): ",
+                          "lineBreakBefore": false
+                        },
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": "\n",
+                          "lineBreakBefore": false
+                        },
+                        {
+                          "type": 1,
+                          "ctor": 2,
+                          "ctorName": "Kt",
+                          "children": [
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 33,
+                                  "text": "```tsx\n",
+                                  "references": [
+                                    {
+                                      "anchor": {
+                                        "$mid": 1,
+                                        "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                                        "external": "file:///Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                                        "path": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                                        "scheme": "file"
+                                      },
+                                      "options": {
+                                        "isFromTool": true
+                                      }
+                                    }
+                                  ],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 33
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 32,
+                                  "text": "'use client';\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 32
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 31,
+                                  "text": "\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 31
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 30,
+                                  "text": "import { useState } from 'react';\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 30
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 29,
+                                  "text": "import ReactMarkdown from 'react-markdown';\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 29
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 28,
+                                  "text": "import remarkGfm from 'remark-gfm';\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 28
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 27,
+                                  "text": "import type { ChatMessage, ToolCall } from '@/lib/parser/types';\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 27
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 26,
+                                  "text": "\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 26
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 25,
+                                  "text": "// Thinking Component for displaying AI reasoning\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 25
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 24,
+                                  "text": "function ThinkingItem({ content }: { content: string }) {\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 24
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 23,
+                                  "text": "  const [isExpanded, setIsExpanded] = useState(true);\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 23
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 22,
+                                  "text": "\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 22
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 21,
+                                  "text": "  return (\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 21
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 20,
+                                  "text": "    <div\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 20
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 19,
+                                  "text": "      className=\"rounded\"\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 19
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 18,
+                                  "text": "      style={{\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 18
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 17,
+                                  "text": "        backgroundColor: '#2d2d30',\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 17
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 16,
+                                  "text": "        border: '1px solid #3e3e42',\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 16
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 15,
+                                  "text": "      }}\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 15
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 14,
+                                  "text": "    >\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 14
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 13,
+                                  "text": "      <button\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 13
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 12,
+                                  "text": "        onClick={() => setIsExpanded(!isExpanded)}\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 12
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 11,
+                                  "text": "        className=\"w-full flex items-center gap-2 text-left transition-colors px-3 py-2\"\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 11
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 10,
+                                  "text": "        style={{ color: '#969696' }}\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 10
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 9,
+                                  "text": "        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#37373d')}\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 9
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 8,
+                                  "text": "        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 8
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 7,
+                                  "text": "        aria-expanded={isExpanded}\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 7
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 6,
+                                  "text": "        aria-label=\"Toggle AI reasoning\"\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 6
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 5,
+                                  "text": "      >\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 5
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 4,
+                                  "text": "        <span className=\"text-xs select-none\">{isExpanded ? '▼' : '▶'}</span>\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 4
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 3,
+                                  "text": "        <span className=\"text-sm\">🧠</span>\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 3
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 2,
+                                  "text": "        <span className=\"text-xs font-semibold\">Thinking</span>\n",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 2
+                              },
+                              "references": []
+                            },
+                            {
+                              "type": 1,
+                              "ctor": 2,
+                              "ctorName": "__e",
+                              "children": [
+                                {
+                                  "type": 2,
+                                  "priority": 33,
+                                  "text": "```",
+                                  "references": [],
+                                  "lineBreakBefore": true
+                                }
+                              ],
+                              "props": {
+                                "priority": 33
+                              },
+                              "references": []
+                            }
+                          ],
+                          "props": {},
+                          "references": []
+                        }
+                      ],
+                      "props": {},
+                      "references": []
+                    }
+                  }
+                }
+              ]
+            },
+            "toolu_015CxUxg3Jodmz9egEYZnDCh__vscode-1764707424927": {
+              "$mid": 20,
+              "content": [
+                {
+                  "$mid": 23,
+                  "value": {
+                    "node": {
+                      "type": 1,
+                      "ctor": 2,
+                      "ctorName": "T_",
+                      "children": [
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": "The following files were successfully edited:",
+                          "lineBreakBefore": false
+                        },
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": "\n",
+                          "lineBreakBefore": false
+                        },
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": "/Users/digitarald/Developer/vscode-chat-logs/src/components/ChatMessage.tsx",
+                          "lineBreakBefore": false
+                        },
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": "\n",
+                          "lineBreakBefore": false
+                        }
+                      ],
+                      "props": {},
+                      "references": []
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "modelMessageId": "decb41d9-76de-4c6c-b52d-dd530b978a02",
+          "responseId": "85acda14-fa08-4525-afe5-72835ef219a0",
+          "sessionId": "0acec4b6-22d5-4e95-a4be-ce833d72d299",
+          "agentId": "github.copilot.editsAgent"
+        },
+        "details": "Claude Opus 4.5 (Preview) • 1x"
+      },
+      "responseMarkdownInfo": [],
+      "followups": [],
+      "modelState": {
+        "value": 1,
+        "completedAt": 1764707569392
+      },
+      "contentReferences": [
+        {
+          "kind": "reference",
+          "reference": {
+            "$mid": 1,
+            "fsPath": "/Users/digitarald/Developer/vscode-chat-logs/AGENTS.md",
+            "external": "file:///Users/digitarald/Developer/vscode-chat-logs/AGENTS.md",
+            "path": "/Users/digitarald/Developer/vscode-chat-logs/AGENTS.md",
+            "scheme": "file"
+          }
+        },
+        {
+          "kind": "reference",
+          "reference": {
+            "$mid": 1,
+            "fsPath": "/Users/digitarald/Library/Application Support/Code - Insiders/User/prompts/frontend-dev.instructions.md",
+            "external": "vscode-userdata:/Users/digitarald/Library/Application%20Support/Code%20-%20Insiders/User/prompts/frontend-dev.instructions.md",
+            "path": "/Users/digitarald/Library/Application Support/Code - Insiders/User/prompts/frontend-dev.instructions.md",
+            "scheme": "vscode-userdata"
+          }
+        }
+      ],
+      "codeCitations": [],
+      "timeSpentWaiting": 0
+    }
+  ]
+}

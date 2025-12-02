@@ -95,26 +95,39 @@ export class ChatReplayParser {
       const data: ChatReplayExport = JSON.parse(jsonText);
       const messages: ChatMessage[] = [];
 
+      // Track last user prompt to detect duplicates
+      let lastUserPrompt: string | null = null;
+
       for (const prompt of data.prompts) {
-        // User message from prompt
-        const userMessage: ChatMessage = {
-          id: `prompt_${messages.length}`,
-          role: 'user',
-          contentSegments: [
-            {
-              type: 'text',
-              content: prompt.prompt,
-              order: 0,
-            },
-          ],
-        };
-        messages.push(userMessage);
+        // Skip duplicate consecutive user prompts (same prompt text as previous)
+        // This handles retry/continuation scenarios in chatreplay exports
+        const isDuplicatePrompt = lastUserPrompt === prompt.prompt;
+
+        if (!isDuplicatePrompt) {
+          // User message from prompt
+          const userMessage: ChatMessage = {
+            id: `prompt_${messages.length}`,
+            role: 'user',
+            contentSegments: [
+              {
+                type: 'text',
+                content: prompt.prompt,
+                order: 0,
+              },
+            ],
+          };
+          messages.push(userMessage);
+          lastUserPrompt = prompt.prompt;
+        }
 
         // Assistant response - collect all successful responses and tool calls
         const assistantSegments: ContentSegment[] = [];
         let currentOrder = 0;
         let accumulatedText = '';
         let lastTopLevelToolCall: ToolCall | null = null;
+
+        // Track thinking IDs to prevent duplicates
+        const seenThinkingIds = new Set<string>();
 
         for (const log of prompt.logs) {
           if (log.kind === 'request' && log.type === 'ChatMLSuccess') {
@@ -128,41 +141,31 @@ export class ChatReplayParser {
               accumulatedText = '';
             }
 
-            // Check for thinking content in response or request messages
+            // Check for thinking content in request messages
             const requestLog = log as ChatReplayRequestLog;
 
-            // Check response content for thinking
-            if (requestLog.response?.content) {
-              for (const item of requestLog.response.content) {
-                if (
-                  item.type === 2 &&
-                  item.value?.type === 'thinking' &&
-                  item.value.thinking?.text
-                ) {
-                  assistantSegments.push({
-                    type: 'thinking',
-                    content: item.value.thinking.text,
-                    order: currentOrder++,
-                  });
-                }
-              }
-            }
-
-            // Check request messages for thinking (from previous turns)
+            // Extract thinking from requestMessages (where it actually exists in the data)
             if (requestLog.requestMessages?.messages) {
-              for (const msg of requestLog.requestMessages.messages) {
-                if (msg.content && Array.isArray(msg.content)) {
-                  for (const item of msg.content) {
+              for (const message of requestLog.requestMessages.messages) {
+                if (message.content && Array.isArray(message.content)) {
+                  for (const item of message.content) {
                     if (
                       item.type === 2 &&
                       item.value?.type === 'thinking' &&
                       item.value.thinking?.text
                     ) {
-                      assistantSegments.push({
-                        type: 'thinking',
-                        content: item.value.thinking.text,
-                        order: currentOrder++,
-                      });
+                      const thinkingId = item.value.thinking.id;
+                      // Only add if we haven't seen this thinking ID before (deduplication)
+                      if (!thinkingId || !seenThinkingIds.has(thinkingId)) {
+                        assistantSegments.push({
+                          type: 'thinking',
+                          content: item.value.thinking.text,
+                          order: currentOrder++,
+                        });
+                        if (thinkingId) {
+                          seenThinkingIds.add(thinkingId);
+                        }
+                      }
                     }
                   }
                 }

@@ -313,7 +313,7 @@ describe('ChatReplayParser', () => {
     expect(result.messages[1].contentSegments[2].order).toBe(2);
   });
 
-  it('parses thinking segments from response content', () => {
+  it('parses thinking segments from request messages', () => {
     const chatreplay = {
       exportedAt: '2025-12-02T08:45:40.568Z',
       totalPrompts: 1,
@@ -329,21 +329,27 @@ describe('ChatReplayParser', () => {
               kind: 'request',
               type: 'ChatMLSuccess',
               name: 'panel/editAgent',
+              requestMessages: {
+                messages: [
+                  {
+                    content: [
+                      {
+                        type: 2,
+                        value: {
+                          type: 'thinking',
+                          thinking: {
+                            id: 'think_1',
+                            text: 'This is my reasoning process...',
+                          },
+                        },
+                      },
+                    ],
+                  },
+                ],
+              },
               response: {
                 type: 'success',
                 message: [],
-                content: [
-                  {
-                    type: 2,
-                    value: {
-                      type: 'thinking',
-                      thinking: {
-                        id: 'think_1',
-                        text: 'This is my reasoning process...',
-                      },
-                    },
-                  },
-                ],
               },
             },
           ],
@@ -359,5 +365,238 @@ describe('ChatReplayParser', () => {
     if (result.messages[1].contentSegments[0].type === 'thinking') {
       expect(result.messages[1].contentSegments[0].content).toBe('This is my reasoning process...');
     }
+  });
+
+  it('deduplicates thinking segments from requestMessages context', () => {
+    const chatreplay = {
+      exportedAt: '2025-12-02T08:45:40.568Z',
+      totalPrompts: 1,
+      totalLogEntries: 1,
+      prompts: [
+        {
+          prompt: 'Second question',
+          hasSeen: false,
+          logCount: 1,
+          logs: [
+            {
+              id: 'req_2',
+              kind: 'request',
+              type: 'ChatMLSuccess',
+              name: 'panel/editAgent',
+              requestMessages: {
+                messages: [
+                  {
+                    role: 2,
+                    content: [
+                      {
+                        type: 2,
+                        value: {
+                          type: 'thinking',
+                          thinking: {
+                            id: 'think_current',
+                            text: 'Current thinking for this turn...',
+                          },
+                        },
+                      },
+                    ],
+                  },
+                ],
+              },
+              response: {
+                type: 'success',
+                message: ['New response'],
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = parseChatReplayLog(JSON.stringify(chatreplay));
+
+    expect(result.messages).toHaveLength(2);
+    expect(result.messages[1].role).toBe('assistant');
+
+    // Should have thinking from requestMessages
+    const thinkingSegments = result.messages[1].contentSegments.filter(
+      (seg) => seg.type === 'thinking'
+    );
+    expect(thinkingSegments).toHaveLength(1);
+    if (thinkingSegments[0].type === 'thinking') {
+      expect(thinkingSegments[0].content).toBe('Current thinking for this turn...');
+    }
+  });
+
+  it('prevents duplicate thinking segments with same ID', () => {
+    const chatreplay = {
+      exportedAt: '2025-12-02T08:45:40.568Z',
+      totalPrompts: 1,
+      totalLogEntries: 2,
+      prompts: [
+        {
+          prompt: 'Test duplicate prevention',
+          hasSeen: false,
+          logCount: 2,
+          logs: [
+            {
+              id: 'req_1',
+              kind: 'request',
+              type: 'ChatMLSuccess',
+              name: 'panel/editAgent',
+              requestMessages: {
+                messages: [
+                  {
+                    content: [
+                      {
+                        type: 2,
+                        value: {
+                          type: 'thinking',
+                          thinking: {
+                            id: 'duplicate_think',
+                            text: 'This thinking should only appear once',
+                          },
+                        },
+                      },
+                    ],
+                  },
+                ],
+              },
+              response: {
+                type: 'success',
+                message: [],
+              },
+            },
+            {
+              id: 'req_2',
+              kind: 'request',
+              type: 'ChatMLSuccess',
+              name: 'panel/editAgent',
+              requestMessages: {
+                messages: [
+                  {
+                    content: [
+                      {
+                        type: 2,
+                        value: {
+                          type: 'thinking',
+                          thinking: {
+                            id: 'duplicate_think', // Same ID - should be skipped
+                            text: 'This thinking should only appear once',
+                          },
+                        },
+                      },
+                    ],
+                  },
+                ],
+              },
+              response: {
+                type: 'success',
+                message: ['Follow-up'],
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = parseChatReplayLog(JSON.stringify(chatreplay));
+
+    expect(result.messages).toHaveLength(2);
+
+    // Count thinking segments - should only be 1 despite duplicate ID
+    const thinkingSegments = result.messages[1].contentSegments.filter(
+      (seg) => seg.type === 'thinking'
+    );
+    expect(thinkingSegments).toHaveLength(1);
+  });
+
+  it('deduplicates consecutive identical user prompts', () => {
+    const chatreplay = {
+      exportedAt: '2025-12-02T08:45:40.568Z',
+      totalPrompts: 4,
+      totalLogEntries: 8,
+      prompts: [
+        {
+          prompt: 'Repeated question',
+          hasSeen: false,
+          logCount: 1,
+          logs: [
+            {
+              id: 'req_1',
+              kind: 'request',
+              type: 'ChatMLSuccess',
+              name: 'panel/editAgent',
+              response: {
+                type: 'success',
+                message: ['First attempt'],
+              },
+            },
+          ],
+        },
+        {
+          prompt: 'Repeated question', // Duplicate - should be skipped
+          hasSeen: false,
+          logCount: 1,
+          logs: [
+            {
+              id: 'req_2',
+              kind: 'request',
+              type: 'ChatMLSuccess',
+              name: 'panel/editAgent',
+              response: {
+                type: 'success',
+                message: ['Second attempt'],
+              },
+            },
+          ],
+        },
+        {
+          prompt: 'Repeated question', // Duplicate - should be skipped
+          hasSeen: false,
+          logCount: 1,
+          logs: [
+            {
+              id: 'req_3',
+              kind: 'request',
+              type: 'ChatMLSuccess',
+              name: 'panel/editAgent',
+              response: {
+                type: 'success',
+                message: ['Third attempt'],
+              },
+            },
+          ],
+        },
+        {
+          prompt: 'Different question', // Not a duplicate
+          hasSeen: false,
+          logCount: 1,
+          logs: [
+            {
+              id: 'req_4',
+              kind: 'request',
+              type: 'ChatMLSuccess',
+              name: 'panel/editAgent',
+              response: {
+                type: 'success',
+                message: ['Fourth response'],
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = parseChatReplayLog(JSON.stringify(chatreplay));
+
+    // Should have 2 user messages (one for each unique prompt), not 4
+    const userMessages = result.messages.filter((m) => m.role === 'user');
+    expect(userMessages).toHaveLength(2);
+    expect(userMessages[0].contentSegments[0]).toHaveProperty('content', 'Repeated question');
+    expect(userMessages[1].contentSegments[0]).toHaveProperty('content', 'Different question');
+
+    // Should have all 4 assistant responses (attempts aren't merged)
+    const assistantMessages = result.messages.filter((m) => m.role === 'assistant');
+    expect(assistantMessages).toHaveLength(4);
   });
 });

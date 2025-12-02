@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { gistFetcher } from '@/lib/gist-fetcher';
 import { parseLog } from '@/lib/parser';
 import { addToHistory } from '@/lib/history';
+import { truncateFilename } from '@/lib/select-log-file';
 import HistoryList from '@/components/HistoryList';
 import { EXAMPLE_GISTS, getExampleLabel, formatGistId } from '@/lib/examples';
 
@@ -24,7 +25,7 @@ export default function HomePage() {
 
     try {
       const gistId = gistFetcher.extractGistId(gistUrl);
-      
+
       if (!gistId) {
         setError('Invalid Gist URL. Please use a valid GitHub Gist URL.');
         setLoading(false);
@@ -39,66 +40,69 @@ export default function HomePage() {
     }
   };
 
-  const handleFileLoad = useCallback(async (content: string) => {
-    try {
-      // Validate that the content can be parsed
-      parseLog(content);
-      
-      // Generate a unique ID for file uploads
-      const fileId = `file-${Date.now()}`;
-      
-      // Add to history
-      addToHistory({
-        id: fileId,
-        type: 'file',
-        title: 'Uploaded file',
-      });
-      
-      // For large files, store in IndexedDB instead of sessionStorage
+  const handleFileLoad = useCallback(
+    async (content: string, filename = 'Uploaded file') => {
       try {
-        // Try sessionStorage first (faster)
-        sessionStorage.setItem('copilot-log-content', content);
-        // Small delay to ensure storage is committed
-        await new Promise(resolve => setTimeout(resolve, 50));
-        router.push('/view');
-      } catch {
-        // If sessionStorage fails (quota exceeded), use IndexedDB
-        // Wait for IndexedDB write to complete before navigating
-        await storeInIndexedDB(content);
-        // Small delay to ensure IndexedDB transaction completes
-        await new Promise(resolve => setTimeout(resolve, 100));
-        router.push('/view?source=idb');
+        // Validate that the content can be parsed
+        parseLog(content);
+
+        // Generate a unique ID for file uploads
+        const fileId = `file-${Date.now()}`;
+
+        // Add to history with truncated filename
+        addToHistory({
+          id: fileId,
+          type: 'file',
+          title: truncateFilename(filename),
+        });
+
+        // For large files, store in IndexedDB instead of sessionStorage
+        try {
+          // Try sessionStorage first (faster)
+          sessionStorage.setItem('copilot-log-content', content);
+          // Small delay to ensure storage is committed
+          await new Promise((resolve) => setTimeout(resolve, 50));
+          router.push('/view');
+        } catch {
+          // If sessionStorage fails (quota exceeded), use IndexedDB
+          // Wait for IndexedDB write to complete before navigating
+          await storeInIndexedDB(content);
+          // Small delay to ensure IndexedDB transaction completes
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          router.push('/view?source=idb');
+        }
+      } catch (err) {
+        setError(`Failed to parse file: ${err instanceof Error ? err.message : 'Unknown error'}`);
       }
-    } catch (err) {
-      setError(`Failed to parse file: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    }
-  }, [router]);
+    },
+    [router]
+  );
 
   const storeInIndexedDB = (content: string): Promise<void> => {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open('CopilotLogDB', 1);
-      
+
       request.onerror = () => reject(new Error('Failed to open IndexedDB'));
-      
+
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
         if (!db.objectStoreNames.contains('logs')) {
           db.createObjectStore('logs');
         }
       };
-      
+
       request.onsuccess = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
         const transaction = db.transaction(['logs'], 'readwrite');
         const store = transaction.objectStore('logs');
-        
+
         store.put(content, 'current');
-        
+
         transaction.oncomplete = () => {
           db.close();
           resolve();
         };
-        
+
         transaction.onerror = () => reject(new Error('Failed to store in IndexedDB'));
       };
     });
@@ -111,7 +115,7 @@ export default function HomePage() {
     const reader = new FileReader();
     reader.onload = async (event) => {
       const content = event.target?.result as string;
-      await handleFileLoad(content);
+      await handleFileLoad(content, file.name);
     };
     reader.onerror = () => {
       setError('Failed to read file');
@@ -145,7 +149,7 @@ export default function HomePage() {
     const reader = new FileReader();
     reader.onload = async (event) => {
       const content = event.target?.result as string;
-      await handleFileLoad(content);
+      await handleFileLoad(content, file.name);
     };
     reader.onerror = () => {
       setError('Failed to read file');
@@ -153,36 +157,41 @@ export default function HomePage() {
     reader.readAsText(file);
   };
 
-  const handlePaste = useCallback(async (e: ClipboardEvent) => {
-    // Don't interfere with paste in input fields or contentEditable elements
-    const target = e.target as HTMLElement;
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-      return;
-    }
+  const handlePaste = useCallback(
+    async (e: ClipboardEvent) => {
+      // Don't interfere with paste in input fields or contentEditable elements
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
 
-    const text = e.clipboardData?.getData('text');
-    if (!text || text.trim().length === 0) {
-      return;
-    }
+      const text = e.clipboardData?.getData('text');
+      if (!text || text.trim().length === 0) {
+        return;
+      }
 
-    // Show visual feedback
-    setIsPasting(true);
-    setError('');
+      // Show visual feedback
+      setIsPasting(true);
+      setError('');
 
-    try {
-      // Try to parse the pasted content
-      await handleFileLoad(text);
-      // Note: isPasting will be reset by navigation, so no need to explicitly set to false here
-    } catch (err) {
-      setError(`Failed to parse pasted content: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      setIsPasting(false);
-    }
-  }, [handleFileLoad]);
+      try {
+        // Try to parse the pasted content
+        await handleFileLoad(text);
+        // Note: isPasting will be reset by navigation, so no need to explicitly set to false here
+      } catch (err) {
+        setError(
+          `Failed to parse pasted content: ${err instanceof Error ? err.message : 'Unknown error'}`
+        );
+        setIsPasting(false);
+      }
+    },
+    [handleFileLoad]
+  );
 
   // Add paste event listener
   useEffect(() => {
     document.addEventListener('paste', handlePaste, { passive: false });
-    
+
     return () => {
       document.removeEventListener('paste', handlePaste);
     };

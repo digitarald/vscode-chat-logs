@@ -7,7 +7,7 @@ import type { ChatMessage, ToolCall } from '@/lib/parser/types';
 
 // Thinking Component for displaying AI reasoning
 function ThinkingItem({ content }: { content: string }) {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <div
