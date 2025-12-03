@@ -38,6 +38,7 @@ interface JsonVariable {
 interface JsonResponseItem {
   kind?: string;
   value?: string;
+  name?: string;
   toolInvocationSerialized?: JsonToolCall;
   inlineReference?: {
     name?: string;
@@ -216,8 +217,7 @@ export class JsonLogParser {
       // Inline file references - render as markdown links for file paths, backticks for code
       if (item.kind === 'inlineReference' && itemData.inlineReference) {
         // Name can be at top level of item or inside inlineReference
-        const refName =
-          (item.name as string) || (itemData.inlineReference as Record<string, unknown>).name || '';
+        const refName = item.name || itemData.inlineReference.name || '';
         if (refName) {
           // If it looks like a file path (contains / or file extension), render as link
           // Otherwise render as inline code with backticks
