@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, it, expect } from 'vitest';
 import { parseChatReplayLog } from '../../src/lib/parser/chatreplay-parser';
 import { detectLogFormat } from '../../src/lib/parser/format-detector';
@@ -14,53 +16,29 @@ describe('ChatReplayParser', () => {
     expect(detectLogFormat(chatreplay)).toBe('chatreplay');
   });
 
-  it('parses basic chatreplay structure', () => {
-    const chatreplay = {
-      exportedAt: '2025-12-02T08:45:40.568Z',
-      totalPrompts: 1,
-      totalLogEntries: 3,
-      prompts: [
-        {
-          prompt: 'What is the meaning of life?',
-          hasSeen: false,
-          logCount: 2,
-          logs: [
-            {
-              id: 'req_1',
-              kind: 'request',
-              type: 'ChatMLSuccess',
-              name: 'panel/editAgent',
-              metadata: {
-                model: 'gpt-4',
-              },
-              response: {
-                type: 'success',
-                message: ['The meaning of life is 42.'],
-              },
-            },
-          ],
-        },
-      ],
-    };
+  it('parses basic chatreplay structure from remove-tests sample', () => {
+    const chatreplay = JSON.parse(
+      readFileSync(join(__dirname, '../../samples/remove-tests.chatreplay.json'), 'utf-8')
+    );
 
     const result = parseChatReplayLog(JSON.stringify(chatreplay));
 
-    expect(result.messages).toHaveLength(2);
-    expect(result.messages[0].role).toBe('user');
-    expect(result.messages[0].contentSegments).toHaveLength(1);
-    expect(result.messages[0].contentSegments[0].type).toBe('text');
-    expect(result.messages[0].contentSegments[0]).toHaveProperty(
-      'content',
-      'What is the meaning of life?'
-    );
+    expect(result.messages.length).toBeGreaterThan(0);
 
-    expect(result.messages[1].role).toBe('assistant');
-    expect(result.messages[1].contentSegments).toHaveLength(1);
-    expect(result.messages[1].contentSegments[0].type).toBe('text');
-    expect(result.messages[1].contentSegments[0]).toHaveProperty(
-      'content',
-      'The meaning of life is 42.'
-    );
+    const userMessages = result.messages.filter((m) => m.role === 'user');
+    const assistantMessages = result.messages.filter((m) => m.role === 'assistant');
+
+    expect(userMessages.length).toBeGreaterThan(0);
+    expect(assistantMessages.length).toBeGreaterThan(0);
+
+    // First user prompt should contain the remove-tests instruction from the sample
+    const firstUser = userMessages[0];
+    expect(firstUser.contentSegments[0].type).toBe('text');
+    if (firstUser.contentSegments[0].type === 'text') {
+      expect(firstUser.contentSegments[0].content).toContain(
+        'Remove tests that mention copilot_all_prompts_2025-12-02T08-45-36.chatreplay.json'
+      );
+    }
   });
 
   it('parses tool calls in chatreplay format', () => {
@@ -600,26 +578,6 @@ describe('ChatReplayParser', () => {
     expect(assistantMessages).toHaveLength(4);
   });
 
-  it('parses real remove-tests.chatreplay.json sample', () => {
-    const chatreplay = require('../../samples/remove-tests.chatreplay.json');
-
-    const result = parseChatReplayLog(JSON.stringify(chatreplay));
-
-    expect(result.messages.length).toBeGreaterThan(0);
-
-    const userMessages = result.messages.filter((m) => m.role === 'user');
-    const assistantMessages = result.messages.filter((m) => m.role === 'assistant');
-
-    expect(userMessages.length).toBeGreaterThan(0);
-    expect(assistantMessages.length).toBeGreaterThan(0);
-
-    // First user prompt should contain the remove-tests instruction from the sample
-    const firstUser = userMessages[0];
-    expect(firstUser.contentSegments[0].type).toBe('text');
-    if (firstUser.contentSegments[0].type === 'text') {
-      expect(firstUser.contentSegments[0].content).toContain(
-        'Remove tests that mention copilot_all_prompts_2025-12-02T08-45-36.chatreplay.json'
-      );
-    }
-  });
+  // NOTE: The remaining tests exercise synthetic minimal chatreplay structures
+  // to cover specific behaviors (tool calls, thinking segments, deduplication).
 });

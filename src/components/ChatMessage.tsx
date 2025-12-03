@@ -379,8 +379,12 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
                             }: {
                               inline?: boolean;
                               children?: React.ReactNode;
-                            }) =>
-                              inline ? (
+                            }) => {
+                              // Filter out empty children to avoid React warnings
+                              const hasContent = children && String(children).trim().length > 0;
+                              if (!hasContent) return null;
+
+                              return inline ? (
                                 <code
                                   className="px-1.5 py-0.5 rounded font-mono"
                                   style={{
@@ -398,7 +402,8 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
                                 >
                                   {children}
                                 </code>
-                              ),
+                              );
+                            },
                             pre: ({ children }: { children?: React.ReactNode }) => (
                               <pre
                                 className="rounded overflow-x-auto my-1"
@@ -418,9 +423,26 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
                             li: ({ children }: { children?: React.ReactNode }) => (
                               <li style={{ color: '#cccccc' }}>{children}</li>
                             ),
+                            a: ({
+                              href,
+                              children,
+                            }: {
+                              href?: string;
+                              children?: React.ReactNode;
+                            }) => (
+                              <a
+                                href={href}
+                                className="underline"
+                                style={{ color: '#4fc3f7' }}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                {children || href}
+                              </a>
+                            ),
                           }}
                         >
-                          {toolCall.output}
+                          {toolCall.output.replace(/``/g, '')}
                         </ReactMarkdown>
                       </div>
                     </div>
@@ -461,7 +483,7 @@ function ToolCallItem({ toolCall, depth = 0 }: { toolCall: ToolCall; depth?: num
                   Output:
                 </span>
                 <pre
-                  className="rounded overflow-x-auto whitespace-pre-wrap break-words select-text"
+                  className="rounded overflow-x-auto whitespace-pre-wrap break-anywhere select-text"
                   style={{
                     padding: '12px',
                     color: '#cccccc',

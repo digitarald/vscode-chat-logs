@@ -33,28 +33,28 @@ describe('Thinking segment rendering', () => {
     const thinkingLabel = screen.getByText('Thinking');
     expect(thinkingLabel).toBeDefined();
 
-    // Should show collapse arrow (▶) since collapsed by default
-    const collapseArrow = screen.getByText('▶');
-    expect(collapseArrow).toBeDefined();
+    // Should show expand arrow (▼) since expanded by default
+    const expandArrow = screen.getByText('▼');
+    expect(expandArrow).toBeDefined();
 
-    // Content should NOT be visible when collapsed
-    expect(screen.queryByText(/test thinking segments/)).toBeNull();
+    // Content should be visible when expanded
+    expect(screen.getByText(/test thinking segments/)).toBeDefined();
   });
 
   it('expands thinking content when clicked', () => {
     const message = buildThinkingMessage();
     render(<ChatMessageComponent message={message} />);
 
-    // Click the toggle button
+    // Click the toggle button to collapse
     const toggleButton = screen.getByRole('button', { name: /Toggle AI reasoning/i });
     fireEvent.click(toggleButton);
 
-    // Arrow should change to ▼
-    const expandArrow = screen.getByText('▼');
-    expect(expandArrow).toBeDefined();
+    // Arrow should change to ▶ when collapsed
+    const collapseArrow = screen.getByText('▶');
+    expect(collapseArrow).toBeDefined();
 
-    // Content should now be visible
-    expect(screen.getByText(/test thinking segments/)).toBeDefined();
+    // Content should no longer be visible
+    expect(screen.queryByText(/test thinking segments/)).toBeNull();
   });
 
   it('renders text segment alongside thinking segment', () => {
@@ -71,13 +71,13 @@ describe('Thinking segment rendering', () => {
 
     const toggleButton = screen.getByRole('button', { name: /Toggle AI reasoning/i });
 
-    // Should have aria-expanded="false" when collapsed
-    expect(toggleButton.getAttribute('aria-expanded')).toBe('false');
+    // Should have aria-expanded="true" when expanded by default
+    expect(toggleButton.getAttribute('aria-expanded')).toBe('true');
 
-    // Click to expand
+    // Click to collapse
     fireEvent.click(toggleButton);
 
-    // Should have aria-expanded="true" when expanded
-    expect(toggleButton.getAttribute('aria-expanded')).toBe('true');
+    // Should have aria-expanded="false" when collapsed
+    expect(toggleButton.getAttribute('aria-expanded')).toBe('false');
   });
 });
