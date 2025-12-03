@@ -5,11 +5,7 @@ import { parseLog } from '../../src/lib/parser';
 
 describe('ChatReplay Sample File', () => {
   it('parses the actual chatreplay sample file', () => {
-    const samplePath = join(
-      process.cwd(),
-      'samples',
-      'copilot_all_prompts_2025-12-02T08-45-36.chatreplay.json'
-    );
+    const samplePath = join(process.cwd(), 'samples', 'remove-tests.chatreplay.json');
     const content = readFileSync(samplePath, 'utf-8');
 
     const result = parseLog(content);
@@ -20,11 +16,7 @@ describe('ChatReplay Sample File', () => {
   });
 
   it('detects tool calls in chatreplay sample', () => {
-    const samplePath = join(
-      process.cwd(),
-      'samples',
-      'copilot_all_prompts_2025-12-02T08-45-36.chatreplay.json'
-    );
+    const samplePath = join(process.cwd(), 'samples', 'remove-tests.chatreplay.json');
     const content = readFileSync(samplePath, 'utf-8');
 
     const result = parseLog(content);
@@ -37,11 +29,7 @@ describe('ChatReplay Sample File', () => {
   });
 
   it('parses user prompts from chatreplay', () => {
-    const samplePath = join(
-      process.cwd(),
-      'samples',
-      'copilot_all_prompts_2025-12-02T08-45-36.chatreplay.json'
-    );
+    const samplePath = join(process.cwd(), 'samples', 'remove-tests.chatreplay.json');
     const content = readFileSync(samplePath, 'utf-8');
 
     const result = parseLog(content);
@@ -61,11 +49,7 @@ describe('ChatReplay Sample File', () => {
   });
 
   it('maintains proper segment ordering in chatreplay', () => {
-    const samplePath = join(
-      process.cwd(),
-      'samples',
-      'copilot_all_prompts_2025-12-02T08-45-36.chatreplay.json'
-    );
+    const samplePath = join(process.cwd(), 'samples', 'remove-tests.chatreplay.json');
     const content = readFileSync(samplePath, 'utf-8');
 
     const result = parseLog(content);
