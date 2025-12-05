@@ -64,15 +64,32 @@ export class GistFetcher {
           // Transform the response to include content
           const files: Record<string, GistFile> = {};
           interface RawGistFile {
-            content: string;
+            content?: string;
+            truncated?: boolean;
+            raw_url?: string;
             language?: string;
           }
           for (const [filename, file] of Object.entries(
             data.files as Record<string, RawGistFile>
           )) {
+            let content = file.content || '';
+            
+            // If content is truncated, fetch from raw_url
+            if (file.truncated && file.raw_url) {
+              try {
+                const rawResponse = await fetch(file.raw_url);
+                if (rawResponse.ok) {
+                  content = await rawResponse.text();
+                }
+              } catch (error) {
+                console.error(`Failed to fetch full content for ${filename}:`, error);
+                // Fall back to truncated content
+              }
+            }
+            
             files[filename] = {
               filename,
-              content: file.content as string,
+              content,
               language: file.language as string | undefined,
             };
           }

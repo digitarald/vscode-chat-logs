@@ -35,3 +35,4 @@ yarn-error.log*
 next-env.d.ts
 .playwright-mcp
 samples/copilot_all_prompts_2025-12-02T08-45-36.chatreplay.json
+samples/dont-commit/*.*
